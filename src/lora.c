@@ -132,9 +132,13 @@ int main(void){
 		printf("Beaglebone is connected.\n");
 	}
 	
-	if (ATModule_GetFWVer()){
-		printf("Error retrieving firmware version.\n");	
-	}
+	// if (ATModule_GetFWVer()){
+	// 	printf("Error retrieving firmware version.\n");	
+	// }
+	
+	char *outgoing = "AT+CMSG=\"balls\"\n";
+	int len=strlen(outgoing);
+	rc_uart_write(UART2, (uint8_t*)outgoing, len);
 	
 	return 0;
 }
