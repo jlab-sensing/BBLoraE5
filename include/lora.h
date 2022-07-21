@@ -27,4 +27,4 @@ enum error_codes {
 
 int ATModule_Init();
 int ATModule_TestConnection();
-int ATModule_GetFWVer();
+int ATModule_GetVersion();
