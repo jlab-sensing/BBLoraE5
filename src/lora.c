@@ -1,6 +1,8 @@
 #include "lora.h"
 #include <string.h>
 
+#define AT_TEST_HARNESS
+
 #define GENERIC_ERROR -1
 
 #define TX 1
@@ -92,6 +94,27 @@ int ATModule_CheckVersion(int bus){
 	return 0;
 }
 
+int ATModule_CheckID(int bus){
+	VERIFY_BUS(bus);
+	int i;
+	uint8_t incoming[MAX_PAYLOAD_LENGTH];
+	
+	if (ATModule_SerialTransmit(bus, "AT+ID\n")){return TX_ERROR;}
+	
+	rc_usleep(5000);//again, maybe not necessary but for peace of mind
+	
+	//Print DevAddr, DevEui, AppEui
+	//would like to use while loop to retrive data until empty but it loops
+	//and i don't feel like dealing with it right now
+	//H A R D   C O D E D
+	for (i=0;i<3;i++){
+		if (ATModule_SerialReceive(bus, incoming)){return RX_ERROR;}
+		printf("Device info: %s\n", incoming);
+	}
+	
+	return 0;
+}
+
 int ATModule_SetNwkSKey(int bus, uint8_t *key){
 	VERIFY_BUS(bus);
 	//need to ensure that network session key is proper length (16bytes)
@@ -122,25 +145,7 @@ int ATModule_SetAppSKey(int bus, uint8_t *key){
 	return 0;
 }
 
-int ATModule_CheckID(int bus){
-	VERIFY_BUS(bus);
-	int i;
-	uint8_t incoming[MAX_PAYLOAD_LENGTH];
-	
-	if (ATModule_SerialTransmit(bus, "AT+ID\n")){return TX_ERROR;}
-	
-	rc_usleep(5000);//again, maybe not necessary but for peace of mind
-	
-	//Print DevAddr, DevEui, AppEui
-	//would like to use while loop to retrive data until empty but it loops
-	//and i don't feel like dealing with it right now
-	//H A R D   C O D E D
-	for (i=0;i<3;i++){
-		if (ATModule_SerialReceive(bus, incoming)){return RX_ERROR;}
-		printf("Device info: %s\n", incoming);
-	}
-	return 0;
-}
+
 
 
 // int GroveModule_Init(){
@@ -185,6 +190,7 @@ int ATModule_CheckID(int bus){
 // 	return SUCCESS;
 // }
 
+#ifdef AT_TEST_HARNESS
 
 int main(void){
 	printf("\nBegin testing on %s at %s\n\n", __DATE__, __TIME__);
@@ -204,6 +210,11 @@ int main(void){
 		printf("Error retrieving version.\n");	
 	}
 	
+	/* Commented out because I don't want to set the network session key each
+	/  time I test functions. I verified that it works with our current key.
+	/  Because SetNwkSKey works, SetAppSKey should too since they're essentially
+	/  identical.
+	*/
 	// char *nwkskey = "bf6eaef13678c9d708b1f8fd9db1b710";
 	// if (ATModule_SetNwkSKey(UART2, (uint8_t*)nwkskey)){
 	// 	printf("Error setting NwkSkey.\n");
@@ -215,3 +226,5 @@ int main(void){
 	
 	return 0;
 }
+
+#endif
