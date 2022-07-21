@@ -26,11 +26,12 @@ enum error_codes {
 
 // int Grove_Init(int bus, int baud, int timeout, int stop_bits, int parity);
 
-int ATModule_Init();
+// int ATModule_Init();
 int ATModule_SerialTransmit(int bus, const char *data);
 int ATModule_SerialReceive(int bus, uint8_t buf[]);
+
 int ATModule_TestConnection(int bus);
 int ATModule_GetVersion(int bus);
 
 int ATModule_SetNwkSKey(int bus, uint8_t *key);
-int ATModule_SetAppSKey(int bus, uint8_t *key)
+int ATModule_SetAppSKey(int bus, uint8_t *key);
