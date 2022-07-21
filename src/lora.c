@@ -83,8 +83,32 @@ int ATModule_GetVersion(int bus){
 	return 0;
 }
 
-int ATModule_SetNwkSKey(int bus, uint8_t key[]){
+int ATModule_SetNwkSKey(int bus, uint8_t *key){
+	//need to ensure that network session key is proper length (16bytes)
 	
+	char data[SKEY_MSG_LEN];
+	//place string into buffer
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%s\"\n", key);
+	if (ATModule_SerialTransmit(bus, data)){return TX_ERROR;}
+	
+	//currently no check to see if correct response
+	//tbd: maybe make the return value the response key from the e5 module
+
+	return 0;
+}
+
+int ATModule_SetAppSKey(int bus, uint8_t *key){
+	//need to ensure that application session key is proper length (16bytes)
+	
+	char data[SKEY_MSG_LEN];
+	//place string into buffer
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%s\"\n", key);
+	if (ATModule_SerialTransmit(bus, data)){return TX_ERROR;}
+	
+	//currently no check to see if correct response
+	//tbd: maybe make the return value the response key from the e5 module
+
+	return 0;
 }
 
 
@@ -149,6 +173,10 @@ int main(void){
 		printf("Error retrieving version.\n");	
 	}
 	
+	char *nwkskey = "bf6eaef13678c9d708b1f8fd9db1b710";
+	if (ATModule_SetNwkSKey(UART2, (uint8_t*)nwkskey)){
+		printf("Error setting NwkSkey.\n");
+	}
 	
 	return 0;
 }
