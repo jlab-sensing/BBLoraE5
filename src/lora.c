@@ -11,7 +11,11 @@
 		}\
 	}
 	
+#define VERIFY_BUS(bus) if ((bus > 5) || (bus < 0)){return IMPROPER_BUS_VALUE;}
+
+	
 int ATModule_SerialTransmit(int bus, const char *data){
+	VERIFY_BUS(bus);
 	int res = 0;
 	int len = strlen(data);
 	
@@ -27,18 +31,22 @@ int ATModule_SerialTransmit(int bus, const char *data){
 }
 
 int ATModule_SerialReceive(int bus, uint8_t buf[]){
+	VERIFY_BUS(bus);
 	int res = 0;
 	
 	if (rc_uart_bytes_available > 0){
 		res = rc_uart_read_line(bus, buf, MAX_PAYLOAD_LENGTH);
 		//unknown response length, so disregard length check in macro
 		VERIFY_RXTX(RX, res, res); 
+	} else{
+		return EMPTY_BUS;
 	}
 	
 	return 0;
 }
 
 int ATModule_TestConnection(int bus){
+	VERIFY_BUS(bus);
 	int i;
 	uint8_t incoming[MAX_PAYLOAD_LENGTH] = {0};
 	
@@ -63,7 +71,8 @@ int ATModule_TestConnection(int bus){
 	return 0;
 }
 
-int ATModule_GetVersion(int bus){
+int ATModule_CheckVersion(int bus){
+	VERIFY_BUS(bus);
 	uint8_t incoming[MAX_PAYLOAD_LENGTH] = {0};
 
 	//Retrieve module firmware version
@@ -84,6 +93,7 @@ int ATModule_GetVersion(int bus){
 }
 
 int ATModule_SetNwkSKey(int bus, uint8_t *key){
+	VERIFY_BUS(bus);
 	//need to ensure that network session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
@@ -98,6 +108,7 @@ int ATModule_SetNwkSKey(int bus, uint8_t *key){
 }
 
 int ATModule_SetAppSKey(int bus, uint8_t *key){
+	VERIFY_BUS(bus);
 	//need to ensure that application session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
@@ -108,6 +119,26 @@ int ATModule_SetAppSKey(int bus, uint8_t *key){
 	//currently no check to see if correct response
 	//tbd: maybe make the return value the response key from the e5 module
 
+	return 0;
+}
+
+int ATModule_CheckID(int bus){
+	VERIFY_BUS(bus);
+	int i;
+	uint8_t incoming[MAX_PAYLOAD_LENGTH];
+	
+	if (ATModule_SerialTransmit(bus, "AT+ID\n")){return TX_ERROR;}
+	
+	rc_usleep(5000);//again, maybe not necessary but for peace of mind
+	
+	//Print DevAddr, DevEui, AppEui
+	//would like to use while loop to retrive data until empty but it loops
+	//and i don't feel like dealing with it right now
+	//H A R D   C O D E D
+	for (i=0;i<3;i++){
+		if (ATModule_SerialReceive(bus, incoming)){return RX_ERROR;}
+		printf("Device info: %s\n", incoming);
+	}
 	return 0;
 }
 
@@ -169,13 +200,17 @@ int main(void){
 		printf("Beaglebone is connected.\n");
 	}
 	
-	if (ATModule_GetVersion(UART2)){
+	if (ATModule_CheckVersion(UART2)){
 		printf("Error retrieving version.\n");	
 	}
 	
-	char *nwkskey = "bf6eaef13678c9d708b1f8fd9db1b710";
-	if (ATModule_SetNwkSKey(UART2, (uint8_t*)nwkskey)){
-		printf("Error setting NwkSkey.\n");
+	// char *nwkskey = "bf6eaef13678c9d708b1f8fd9db1b710";
+	// if (ATModule_SetNwkSKey(UART2, (uint8_t*)nwkskey)){
+	// 	printf("Error setting NwkSkey.\n");
+	// }
+	
+	if (ATModule_CheckID(UART2)){
+		printf("Error retrieving device ID info.\n");
 	}
 	
 	return 0;

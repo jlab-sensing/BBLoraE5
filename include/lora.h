@@ -18,8 +18,10 @@
 
 enum error_codes {
     TX_ERROR = 1,
-    LENGTH_MISMATCH,
     RX_ERROR,
+    LENGTH_MISMATCH,
+    IMPROPER_BUS_VALUE,
+    EMPTY_BUS,
     RESPONSE_ERROR
 };
 
@@ -31,7 +33,10 @@ int ATModule_SerialTransmit(int bus, const char *data);
 int ATModule_SerialReceive(int bus, uint8_t buf[]);
 
 int ATModule_TestConnection(int bus);
-int ATModule_GetVersion(int bus);
+int ATModule_CheckVersion(int bus);
+
+int ATModule_CheckID(int bus);
 
 int ATModule_SetNwkSKey(int bus, uint8_t *key);
 int ATModule_SetAppSKey(int bus, uint8_t *key);
+
