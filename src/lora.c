@@ -183,8 +183,19 @@ int ATModule_SetDataRate(int bus, int rate){
 	return 0;
 }
 
-
-
+int ATModule_LowPower(int bus, int timeout){
+	VERIFY_BUS(bus);
+	if (timeout<0){return GENERIC_ERROR;}
+	
+	if (timeout){
+		char data[MAX_PAYLOAD_LENGTH] = {0};
+		snprintf(data, MAX_PAYLOAD_LENGTH, "AT+LOWPOWER=%i\n", timeout);
+		ATModule_SerialTransmit(bus, data);
+	} else{
+		ATModule_SerialTransmit(bus, "AT+LOWPOWER\n");
+	}
+	return 0;
+}
 
 #ifdef AT_TEST_HARNESS
 
@@ -224,8 +235,13 @@ int main(void){
 		printf("Error retrieving device data rate.\n");
 	}
 	
-	if (ATModule_SetDataRate(UART2, 0)){
-		printf("Error setting device data rate.\n");
+	//Commented out for same reason as SetNwkSKey
+	// if (ATModule_SetDataRate(UART2, 0)){
+	// 	printf("Error setting device data rate.\n");
+	// }
+	
+	if (ATModule_LowPower(UART2, 0)){
+		printf("Error entering low-power mode.\n");
 	}
 	
 	return 0;

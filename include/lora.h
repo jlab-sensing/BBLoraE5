@@ -42,3 +42,5 @@ int ATModule_SetNwkSKey(int bus, uint8_t *key);
 int ATModule_SetAppSKey(int bus, uint8_t *key);
 int ATModule_SetDataRate(int bus, int rate);
 
+int ATModule_LowPower(int bus, int timeout);
+
