@@ -10,4 +10,4 @@ Each LoRa-E5 module provides deafult values for the AppKey, AppSKey, NwkSKey, an
 of these and setting them as soon as possible.
 
 Joining an application server OTAA is recommended, but hasn't worked thus far. Until I can figure out why OTAA activation won't work, we're stuck
-with ABP.
+using ABP.

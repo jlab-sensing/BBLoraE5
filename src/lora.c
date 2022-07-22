@@ -115,6 +115,25 @@ int ATModule_CheckID(int bus){
 	return 0;
 }
 
+int ATModule_CheckDataRate(int bus){
+	VERIFY_BUS(bus);
+	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
+	//request device to send data rate
+	if (ATModule_SerialTransmit(bus, "AT+DR\n")){return TX_ERROR;}
+	//probably not necessary, for peace of mind
+	rc_usleep(5000);
+	//collect response from AT module
+	/*I read from the UART bus twice because the response consists of two parts:
+	*	>DR0
+	*	>+DR: US915 DR0  SF10 BW125K    (numbers may be different)
+	* We get the info from the first in the second response, so I just throw
+	* away the first. It's a lazy method, but it works*/
+	if(ATModule_SerialReceive(bus, buf)){return RX_ERROR;}
+	if(ATModule_SerialReceive(bus, buf)){return RX_ERROR;}
+	printf("Current datarate: %s\n", buf);
+	return 0;
+}
+
 int ATModule_SetNwkSKey(int bus, uint8_t *key){
 	VERIFY_BUS(bus);
 	//need to ensure that network session key is proper length (16bytes)
@@ -144,6 +163,7 @@ int ATModule_SetAppSKey(int bus, uint8_t *key){
 
 	return 0;
 }
+
 
 
 
@@ -222,6 +242,10 @@ int main(void){
 	
 	if (ATModule_CheckID(UART2)){
 		printf("Error retrieving device ID info.\n");
+	}
+	
+	if (ATModule_CheckDataRate(UART2)){
+		printf("Error retrieving device data rate.\n");
 	}
 	
 	return 0;

@@ -35,6 +35,7 @@ int ATModule_SerialReceive(int bus, uint8_t buf[]);
 int ATModule_TestConnection(int bus);
 int ATModule_CheckVersion(int bus);
 int ATModule_CheckID(int bus);
+int ATModule_CheckDataRate(int bus);
 
 int ATModule_SetNwkSKey(int bus, uint8_t *key);
 int ATModule_SetAppSKey(int bus, uint8_t *key);
