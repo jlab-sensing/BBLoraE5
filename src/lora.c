@@ -16,7 +16,7 @@
 #define VERIFY_BUS(bus) if ((bus > 5) || (bus < 0)){return IMPROPER_BUS_VALUE;}
 
 	
-int ATModule_SerialTransmit(int bus, const char *data){
+int ATModule_SerialTransmit(int bus, char *data){
 	VERIFY_BUS(bus);
 	int res = 0;
 	int len = strlen(data);
@@ -164,51 +164,27 @@ int ATModule_SetAppSKey(int bus, uint8_t *key){
 	return 0;
 }
 
-
-
-
-
-// int GroveModule_Init(){
-// 	int res = 0;
-// 	unsigned int i;
-// 	uint8_t flag=0;
+int ATModule_SetDataRate(int bus, int rate){
+	VERIFY_BUS(bus);
+	if ((rate<0) || (rate > 15)){return BAD_DATA_RATE;}
 	
-// 	char data_out[MAX_PAYLOAD_LENGTH] = "AT\n";
-// 	uint8_t data_in[MAX_PAYLOAD_LENGTH];
-// 	int len = strlen(data_out);
+	char data[MAX_PAYLOAD_LENGTH];
+	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
+	snprintf(data, 11, "AT+DR=%i\n", rate);
 	
-// 	//check data rate scheme
-// 	// data_out = "AT+DR=SCHEME";
-// 	strcpy(data_out, "AT+DR=SCHEME");
-// 	len = strlen(data_out);
-// 	if (rc_uart_write(UART2, (uint8_t*)data_out, len) == ERROR){
-// 		printf("Error sending message to check data rate scheme.\n");
-// 		return ERROR;
-// 	}
-// 	rc_usleep(5000);
-// 	strcpy(resp, "AT+DR: US915");
-// 	len = strlen(resp);
-// 	if (rc_uart_read_line(UART2, data_in, len) == ERROR){
-// 		printf("Error reading data rate response.\n");
-// 	}
-// 	for (i=0;i<len;i++){
-// 		if (data_in[i] != resp[i]){
-// 			flag = 1;
-// 		}
-// 	}
-// 	printf("Current data rate: %s\n", &data_in);
+	if (ATModule_SerialTransmit(bus, data)){return TX_ERROR;}
+	
+	rc_usleep(5000);
+	
+	if (ATModule_SerialReceive(bus, buf)){return RX_ERROR;}
+	if (ATModule_SerialReceive(bus, buf)){return RX_ERROR;}
+	
+	printf("New data rate: %s\n", buf);
+	return 0;
+}
 
-	
-// 	// if (flag){
-// 	// 	//set data rate scheme: US915
-// 	// 	*data_out = "AT+DR=US915";
-// 	// 	len=strlen(data_out);
-// 	// 	if (rc_uart_write(UART2, data_out, len) == ERROR){
-// 	// 		printf("Error sending \"Set data scheme\" message.\n);
-// 	// 	}
-// 	// }
-// 	return SUCCESS;
-// }
+
+
 
 #ifdef AT_TEST_HARNESS
 
@@ -246,6 +222,10 @@ int main(void){
 	
 	if (ATModule_CheckDataRate(UART2)){
 		printf("Error retrieving device data rate.\n");
+	}
+	
+	if (ATModule_SetDataRate(UART2, 0)){
+		printf("Error setting device data rate.\n");
 	}
 	
 	return 0;
