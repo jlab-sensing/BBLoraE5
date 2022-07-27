@@ -7,8 +7,8 @@ SRC_DIR := /usr/local/BBLoraE5/src
 OBJ_DIR := /usr/local/BBLoraE5/lib
 BIN_DIR := .
 
-EXE := $(BIN_DIR)/loramake
-SRC := $(wildcard $(SRC_DIR)/lora.c)
+EXE := $(BIN_DIR)/main
+SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 CPPFLAGS := -Iinclude -MMD -MP
