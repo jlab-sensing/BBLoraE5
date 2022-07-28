@@ -7,7 +7,7 @@ SRC_DIR := /usr/local/BBLoraE5/src
 OBJ_DIR := /usr/local/BBLoraE5/lib
 BIN_DIR := .
 
-EXE := $(BIN_DIR)/main
+EXE := $(BIN_DIR)/lora
 SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 

@@ -11,31 +11,40 @@
  
 //  #define T_LORA
  #define T_CSV
+ 
  #define BUFFER_SIZE 1024
- #define NUM_SENSORS 2
- #define NUM_SAMPLES 499
+ #define NUM_RL_FIELDS 8
+ #define NUM_SAMPLES 500
 
- struct t_samples{
- 	int raw_vwc[NUM_SENSORS][NUM_SAMPLES];
- 	int temp[NUM_SENSORS][NUM_SAMPLES];
- 	int ec[NUM_SENSORS][NUM_SAMPLES];
- };
+enum data_fields{TIMESTAMP = 0, I1LV, I2LV, I1H, I1L, V1, V2, I2H, I2L};
+
+struct rl_samples{
+ 	uint8_t I1L_Valid, I2L_Valid;
+	int rl_data[NUM_RL_FIELDS];
+};
 
 static uint8_t col = 0;
  
 void cb1 (void *s, size_t len, void *data){
-	static int id = 0;
-	uint8_t *chr = (uint8_t*)s;
+	static int chr = 0;
+	chr = strtol((char*)s, NULL, 10);
 	
-	if (col==0){
-		id = strtol((char*)s, NULL, 10);
-		printf("%i\n", id);
-	}
+	if (col == I1LV) ((struct rl_samples*)data)->I1L_Valid = chr;
+	else if (col == I2LV) ((struct rl_samples*)data)->I2L_Valid = chr;
+	else if (col == I1H) ((struct rl_samples*)data)->rl_data[I1H-3] += chr/NUM_SAMPLES;
+	else if (col == I1L) ((struct rl_samples*)data)->rl_data[I1L-3] += chr/NUM_SAMPLES;
+	else if (col == V1) ((struct rl_samples*)data)->rl_data[V1-3] += chr/NUM_SAMPLES;
+	else if (col == V2) ((struct rl_samples*)data)->rl_data[V2-3] += chr/NUM_SAMPLES;
+	else if (col == I2H) ((struct rl_samples*)data)->rl_data[I2H-3] += chr/NUM_SAMPLES;
+	else if (col == I2L) ((struct rl_samples*)data)->rl_data[I2L-3] += chr/NUM_SAMPLES;
+	
 	col++;
 }
 void cb2 (int c, void *data){
 	col = 0;
 }
+ 
+ 
  
 int main(void){
 	printf("\nBegin testing on %s at %s\n\n", __DATE__, __TIME__);
@@ -89,30 +98,35 @@ int main(void){
     struct csv_parser p;
     char buf[BUFFER_SIZE];
     size_t bytes_read;
-    // const char teros = "sample/teros.csv";
-    
+	struct rl_samples rl = {0};
+
     if (csv_init(&p, 0) != 0){
         printf("init fail\n");
         exit(EXIT_FAILURE);
     } 
-    fp = fopen("samples/teros.csv", "r");
+    fp = fopen("samples/rocketlogger.csv", "r");
     if (!fp){
         printf("fopen fail\n");
         exit (EXIT_FAILURE);
     } 
     csv_set_opts(&p, CSV_APPEND_NULL);
     while ((bytes_read=fread(buf, 1, 1024, fp)) > 0){
-        if (csv_parse(&p, buf, bytes_read, cb1, cb2, NULL) != bytes_read) {
+        if (csv_parse(&p, buf, bytes_read, cb1, cb2, &rl) != bytes_read) {
             fprintf(stderr, "Error while parsing file: %s\n",
             csv_strerror(csv_error(&p)) );
             exit(EXIT_FAILURE);
         }
-        // printf("%c", p.entry_buf[1]);
     }
-        // csv_fini(&p, cb1, cb2, &c);
+        csv_fini(&p, cb1, cb2, NULL);
         fclose(fp);
         printf("Finished parsing\n");
         csv_free(&p);
+        printf("I1H Avg: %i\n", rl.rl_data[I1H-3]);
+        printf("I1L Avg: %i\n", rl.rl_data[I1L-3]);
+        printf("V1 Avg: %i\n", rl.rl_data[V1-3]);
+        printf("V2 Avg: %i\n", rl.rl_data[V2-3]);
+        printf("I2H Avg: %i\n", rl.rl_data[I2H-3]);
+        printf("I1L Avg: %i\n", rl.rl_data[I1L-3]);
         exit(EXIT_SUCCESS);
 #endif
 
