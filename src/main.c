@@ -12,6 +12,30 @@
 //  #define T_LORA
  #define T_CSV
  #define BUFFER_SIZE 1024
+ #define NUM_SENSORS 2
+ #define NUM_SAMPLES 499
+
+ struct t_samples{
+ 	int raw_vwc[NUM_SENSORS][NUM_SAMPLES];
+ 	int temp[NUM_SENSORS][NUM_SAMPLES];
+ 	int ec[NUM_SENSORS][NUM_SAMPLES];
+ };
+
+static uint8_t col = 0;
+ 
+void cb1 (void *s, size_t len, void *data){
+	static int id = 0;
+	uint8_t *chr = (uint8_t*)s;
+	
+	if (col==0){
+		id = strtol((char*)s, NULL, 10);
+		printf("%i\n", id);
+	}
+	col++;
+}
+void cb2 (int c, void *data){
+	col = 0;
+}
  
 int main(void){
 	printf("\nBegin testing on %s at %s\n\n", __DATE__, __TIME__);
@@ -76,12 +100,14 @@ int main(void){
         printf("fopen fail\n");
         exit (EXIT_FAILURE);
     } 
+    csv_set_opts(&p, CSV_APPEND_NULL);
     while ((bytes_read=fread(buf, 1, 1024, fp)) > 0){
-        if (csv_parse(&p, buf, bytes_read, NULL, NULL, NULL) != bytes_read) {
+        if (csv_parse(&p, buf, bytes_read, cb1, cb2, NULL) != bytes_read) {
             fprintf(stderr, "Error while parsing file: %s\n",
             csv_strerror(csv_error(&p)) );
             exit(EXIT_FAILURE);
         }
+        // printf("%c", p.entry_buf[1]);
     }
         // csv_fini(&p, cb1, cb2, &c);
         fclose(fp);
