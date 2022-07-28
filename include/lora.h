@@ -37,10 +37,11 @@ int ATModule_TestConnection(int bus);
 int ATModule_CheckVersion(int bus);
 int ATModule_CheckID(int bus);
 int ATModule_CheckDataRate(int bus);
-
 int ATModule_SetNwkSKey(int bus, uint8_t *key);
+int ATModule_GetNwkSKey(int bus);
 int ATModule_SetAppSKey(int bus, uint8_t *key);
+int ATModule_GetAppSKey(int bus);
 int ATModule_SetDataRate(int bus, int rate);
-
 int ATModule_LowPower(int bus, int timeout);
+int ATModule_SendString(int bus, char *str);
 

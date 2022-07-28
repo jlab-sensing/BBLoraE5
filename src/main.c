@@ -9,8 +9,8 @@
  #include "lora.h"
  #include "csv.h"
  
-//  #define T_LORA
- #define T_CSV
+ #define T_LORA
+ //#define T_CSV
  
  #define BUFFER_SIZE 1024
  #define NUM_RL_FIELDS 8
@@ -49,17 +49,17 @@ void cb2 (int c, void *data){
 int main(void){
 	printf("\nBegin testing on %s at %s\n\n", __DATE__, __TIME__);
 	
-#ifdef T_LORA
 	if (rc_uart_init(2, 9600, 1, 0, 1, 0) == -1){
 		printf("Error in UART2 initialization.\n");
 	}
-	
+
 	if (ATModule_TestConnection(UART2)){
 		printf("Beaglebone not connected to E5 module.\n");
 	} else{ 
 		printf("Beaglebone is connected.\n");
 	}
 	
+#ifdef T_LORA
 	if (ATModule_CheckVersion(UART2)){
 		printf("Error retrieving version.\n");	
 	}
@@ -81,15 +81,23 @@ int main(void){
 	if (ATModule_CheckDataRate(UART2)){
 		printf("Error retrieving device data rate.\n");
 	}
-	
+
+	ATModule_SerialTransmit(UART2, "AT+LW=LEN\n");
 	//Commented out for same reason as SetNwkSKey
 	// if (ATModule_SetDataRate(UART2, 0)){
 	// 	printf("Error setting device data rate.\n");
 	// }
 	
-	if (ATModule_LowPower(UART2, 0)){
-		printf("Error entering low-power mode.\n");
+	// if (ATModule_LowPower(UART2, 0)){
+	// 	printf("Error entering low-power mode.\n");
+	// }
+	
+	
+	char *str= "Dick and Balls";
+	if (ATModule_SendString(UART2, str)){
+		printf("Error sending string.\n");
 	}
+	
 #endif
 
 #ifdef T_CSV
@@ -129,6 +137,8 @@ int main(void){
         printf("I1L Avg: %i\n", rl.rl_data[I1L-3]);
         exit(EXIT_SUCCESS);
 #endif
+
+
 
 	return 0;
 }

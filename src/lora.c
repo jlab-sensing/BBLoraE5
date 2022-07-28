@@ -15,7 +15,7 @@
 	
 #define VERIFY_BUS(bus) if ((bus > 5) || (bus < 0)){return IMPROPER_BUS_VALUE;}
 
-	
+//Ensure that string isn't too long
 int ATModule_SerialTransmit(int bus, char *data){
 	VERIFY_BUS(bus);
 	int res = 0;
@@ -149,6 +149,7 @@ int ATModule_SetNwkSKey(int bus, uint8_t *key){
 	return 0;
 }
 
+
 int ATModule_SetAppSKey(int bus, uint8_t *key){
 	VERIFY_BUS(bus);
 	//need to ensure that application session key is proper length (16bytes)
@@ -195,4 +196,21 @@ int ATModule_LowPower(int bus, int timeout){
 		ATModule_SerialTransmit(bus, "AT+LOWPOWER\n");
 	}
 	return 0;
+}
+
+int ATModule_SendString(int bus, char *str){
+	VERIFY_BUS(bus);
+	char data[24] = {0};
+
+	if (snprintf(data, 24, "AT+MSG=\"%s\"\n", str) < 0){
+		printf("Error inserting message string.\n");
+		return -1;
+	}
+	if (ATModule_SerialTransmit(bus, data)){
+		printf("Error transmitting message data.\n");
+		return -1;
+	}
+	printf("The string is: %s\n", data);
+	return 0;
+	
 }
