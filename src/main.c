@@ -6,6 +6,8 @@
  
  #include <stdio.h>
  #include <stdlib.h>
+ #include <unistd.h>
+ #include <string.h>
  #include "lora.h"
  #include "csv.h"
  
@@ -30,15 +32,15 @@ static uint8_t col = 0;
 void cb1 (void *s, size_t len, void *data){
 	int chr = 0;
 	chr = strtol((char*)s, NULL, 10);
-	
+	//quick n easy, change later
 	if (col == I1LV) ((struct rl_samples*)data)->I1L_Valid = chr;
 	else if (col == I2LV) ((struct rl_samples*)data)->I2L_Valid = chr;
-	else if (col == I1H) ((struct rl_samples*)data)->rl_data[0] += chr/NUM_SAMPLES;
-	else if (col == I1L) ((struct rl_samples*)data)->rl_data[1] += chr/NUM_SAMPLES;
-	else if (col == V1) ((struct rl_samples*)data)->rl_data[2] += chr/NUM_SAMPLES;
-	else if (col == V2) ((struct rl_samples*)data)->rl_data[3] += chr/NUM_SAMPLES;
-	else if (col == I2H) ((struct rl_samples*)data)->rl_data[4] += chr/NUM_SAMPLES;
-	else if (col == I2L) ((struct rl_samples*)data)->rl_data[5] += chr/NUM_SAMPLES;
+	else if (col == I1H) ((struct rl_samples*)data)->rl_data[0] = chr;//+= chr/NUM_SAMPLES;
+	else if (col == I1L) ((struct rl_samples*)data)->rl_data[1] = chr;
+	else if (col == V1) ((struct rl_samples*)data)->rl_data[2] = chr;
+	else if (col == V2) ((struct rl_samples*)data)->rl_data[3] = chr;
+	else if (col == I2H) ((struct rl_samples*)data)->rl_data[4] = chr;
+	else if (col == I2L) ((struct rl_samples*)data)->rl_data[5] = chr;
 	
 	col++;
 }
@@ -63,12 +65,17 @@ int main(void){
 	if (AT_SetDataRate(UART2, 1)){
 		printf("Error setting device data rate.\n");
 	}
+
+	sleep(1);
+	char *tx2 = "AT+ADR=OFF\n";
+	AT_SerialTransmit(UART2, tx2);
 	
 	FILE *fp;
     struct csv_parser p;
     char buf[BUFFER_SIZE];
     size_t bytes_read;
 	struct rl_samples rl = {0};
+	char trx[MAX_PAYLOAD_LENGTH] = {0};
 
     if (csv_init(&p, 0) != 0){
         printf("init fail\n");
@@ -86,6 +93,12 @@ int main(void){
             csv_strerror(csv_error(&p)) );
             exit(EXIT_FAILURE);
         }
+    	sprintf(trx, "%i,%i,%i,%i,%i,%i", rl.rl_data[0], rl.rl_data[1], \
+    		rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5]);
+    	AT_SendString(UART2, trx);
+    	sleep(10);
+    	// AT_CheckDataRate(UART2);
+    	// memset(trx, 0, MAX_PAYLOAD_LENGTH);
     }
     
     csv_fini(&p, cb1, cb2, NULL);
@@ -93,11 +106,6 @@ int main(void){
     printf("Finished parsing\n");
     csv_free(&p);
     
-    char trx[MAX_PAYLOAD_LENGTH] = {0};
-    sprintf(trx, "%i,%i,%i,%i,%i,%i", rl.rl_data[0], rl.rl_data[1], \
-    	rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5]);
-    
-    AT_SendString(UART2, trx);
     exit(EXIT_SUCCESS);
 }
  
