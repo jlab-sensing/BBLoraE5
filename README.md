@@ -43,3 +43,13 @@ The default LoRaWAN MAC version is V1.0.2B, but some modules make it through wit
 and it caused some activation issues. Make sure that you check yourself, rather than blindly trusting the default settings.
 
 
+## Data Rate Options
+
+LoRaWAN is based on the Chirp Spread Spectrum technique, and relies on something called the spreading factor. The spreading factor affects
+several characteristics such as data rate, distance, airtime, sensitivity, battery life, and the maximum message length.
+
+Increasing spreading factor-->higher bit rate, further distance, more airtime, higher receiver sensitivity, shorter battery life.
+
+End devices which are close to gateways should use a lower spreading factor and higher data rate, while devices further away should use a 
+high spreading factor because they need a higher link budget.
+

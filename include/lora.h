@@ -10,7 +10,7 @@
 #define SB 1 //stop bits
 #define PAR 0 //parity
 
-#define MAX_PAYLOAD_LENGTH 528 //512 characters maximum
+#define MAX_PAYLOAD_LENGTH 60 //53 characters maximum
 #define SKEY_MSG_LEN 52
 
 #define SUCCESS 0
@@ -30,18 +30,17 @@ enum error_codes {
 // int Grove_Init(int bus, int baud, int timeout, int stop_bits, int parity);
 
 // int ATModule_Init();
-int ATModule_SerialTransmit(int bus, char *data);
-int ATModule_SerialReceive(int bus, uint8_t buf[]);
-
-int ATModule_TestConnection(int bus);
-int ATModule_CheckVersion(int bus);
-int ATModule_CheckID(int bus);
-int ATModule_CheckDataRate(int bus);
-int ATModule_SetNwkSKey(int bus, uint8_t *key);
-int ATModule_GetNwkSKey(int bus);
-int ATModule_SetAppSKey(int bus, uint8_t *key);
-int ATModule_GetAppSKey(int bus);
-int ATModule_SetDataRate(int bus, int rate);
-int ATModule_LowPower(int bus, int timeout);
-int ATModule_SendString(int bus, char *str);
+int AT_SerialTransmit(int bus, char *data);
+int AT_SerialReceive(int bus, uint8_t buf[]);
+int AT_TestConnection(int bus);
+int AT_CheckVersion(int bus);
+int AT_CheckID(int bus);
+int AT_CheckDataRate(int bus);
+int AT_SetNwkSKey(int bus, uint8_t *key);
+int AT_GetNwkSKey(int bus);
+int AT_SetAppSKey(int bus, uint8_t *key);
+int AT_GetAppSKey(int bus);
+int AT_SetDataRate(int bus, int rate);
+int AT_LowPower(int bus, int timeout);
+int AT_SendString(int bus, char *str);
 
