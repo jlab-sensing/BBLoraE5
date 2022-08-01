@@ -9,6 +9,7 @@
 #define CAN_EN 0 //canonical mode enable
 #define SB 1 //stop bits
 #define PAR 0 //parity
+#define DATA_RATE 1
 
 #define MAX_PAYLOAD_LENGTH 60 //53 characters maximum
 #define SKEY_MSG_LEN 52
@@ -19,17 +20,15 @@
 enum error_codes {
     TX_ERROR = 1,
     RX_ERROR,
-    LENGTH_MISMATCH,
-    IMPROPER_BUS_VALUE,
-    EMPTY_BUS,
-    BAD_DATA_RATE,
-    RESPONSE_ERROR
+    BAD_BUS,
+    BAD_BAUD,
+    BAD_TIMEOUT
 };
 
 
 // int Grove_Init(int bus, int baud, int timeout, int stop_bits, int parity);
 
-// int ATModule_Init();
+int AT_Init(int bus, int baud, int timeout, int DR);
 int AT_SerialTransmit(int bus, char *data);
 int AT_SerialReceive(int bus, uint8_t buf[]);
 int AT_TestConnection(int bus);

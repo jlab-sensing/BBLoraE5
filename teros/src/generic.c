@@ -27,9 +27,7 @@ int ipc_write(int fd, const char * buf, const int n)
 int ipc_read(int fd, char * buf, int n)
 {
 	int nr;
-	// printf("bread\n");
 	nr = read(fd, buf, n);
-	// printf("psl");
 	if (nr < 0)
 		error(EXIT_FAILURE, errno, "Could not read");
 

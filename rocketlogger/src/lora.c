@@ -12,7 +12,8 @@
 		}\
 	}
 	
-#define VERIFY_BUS(bus) if ((bus > 5) || (bus < 0)){return IMPROPER_BUS_VALUE;}
+#define VERIFY_BUS(bus) if ((bus > 5) || (bus < 0)){return BAD_BUS;}
+
 
 //Ensure that string isn't too long
 int AT_SerialTransmit(int bus, char *data){
@@ -40,7 +41,7 @@ int AT_SerialReceive(int bus, uint8_t buf[]){
 		//unknown response length, so disregard length check in macro
 		VERIFY_RXTX(RX, res, res); 
 	} else{
-		return EMPTY_BUS;
+		return ERROR;
 	}
 	
 	return SUCCESS;
@@ -66,7 +67,7 @@ int AT_TestConnection(int bus){
 	for (i=0;i<len;i++){
 		if (incoming[i] != resp[i]){
 			printf("\tError reading E5 module response: %s\n", (char*)&incoming);
-			return RESPONSE_ERROR;
+			return ERROR;
 		}
 	}
 	
@@ -166,7 +167,7 @@ int AT_SetAppSKey(int bus, uint8_t *key){
 
 int AT_SetDataRate(int bus, int rate){
 	VERIFY_BUS(bus);
-	if ((rate<0) || (rate > 15)){return BAD_DATA_RATE;}
+	if ((rate<0) || (rate > 15)){return ERROR;}
 	
 	char data[MAX_PAYLOAD_LENGTH];
 	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
@@ -212,4 +213,31 @@ int AT_SendString(int bus, char *str){
 	printf("The string is: %s\n", data);
 	return SUCCESS;
 	
+}
+
+int AT_Init(int bus, int baud, int timeout, int DR){
+	VERIFY_BUS(bus);
+	if (baud<0) return BAD_BAUD;
+	if (timeout<0 || timeout>1000) return BAD_TIMEOUT;
+	
+	if (rc_uart_init(bus, baud, timeout, CAN_EN, SB, PAR) == -1){
+		printf("Error in UART2 initialization.\n");
+		// return ERROR;
+	}
+	
+	if (AT_TestConnection(UART2)){
+		printf("Beaglebone not connected to E5 module.\n");
+		// return ERROR;
+	}
+	//ADR will automatically set data rates, but we want to stick with DR1
+	//Not necessary for initialization, up to user
+	if (AT_SerialTransmit(UART2, "AT+ADR=OFF\n") == -1){
+		printf("Error setting ADR function.\n");
+	}
+	
+	if (AT_SetDataRate(UART2, DR) == -1){
+		printf("Error setting datarate.\n");
+	}
+
+	return SUCCESS;
 }

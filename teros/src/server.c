@@ -29,10 +29,9 @@ void ipc_server_setup(int fd, char * path)
 int ipc_server_accept(int fd)
 {
 	// Accept an incoming connection
-	printf("in function\n");
 	int cfg;
+	
 	cfg = accept(fd, NULL, NULL);
-	printf("after accept?\n");
 	if (cfg < 0)
 		error(EXIT_FAILURE, errno, "Could not accept connection");
 

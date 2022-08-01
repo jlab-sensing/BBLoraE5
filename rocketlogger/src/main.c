@@ -16,7 +16,6 @@
  #define T_LORA
  //#define T_CSV
  
- #define BUFFER_SIZE 1024
  #define NUM_RL_FIELDS 6
  #define NUM_SAMPLES 500
  #define BUF_LEN 1024
@@ -28,95 +27,136 @@ struct rl_samples{
 	int rl_data[NUM_RL_FIELDS];
 };
 
+struct tsamples{
+	int moisture;
+	int temp;
+	int rho;
+};
+
 static uint8_t col = 0;
- 
+
+/*******************************************************************************
+ * 
+ * HELPER FUNCTIONS
+ * 
+ ******************************************************************************/ 
 void cb1 (void *s, size_t len, void *data){
 	int chr = 0;
 	chr = strtol((char*)s, NULL, 10);
 	//quick n easy, change later
 	if (col == I1LV) ((struct rl_samples*)data)->I1L_Valid = chr;
-	else if (col == I2LV) ((struct rl_samples*)data)->I2L_Valid = chr;
-	else if (col == I1H) ((struct rl_samples*)data)->rl_data[0] = chr;//+= chr/NUM_SAMPLES;
-	else if (col == I1L) ((struct rl_samples*)data)->rl_data[1] = chr;
-	else if (col == V1) ((struct rl_samples*)data)->rl_data[2] = chr;
-	else if (col == V2) ((struct rl_samples*)data)->rl_data[3] = chr;
-	else if (col == I2H) ((struct rl_samples*)data)->rl_data[4] = chr;
-	else if (col == I2L) ((struct rl_samples*)data)->rl_data[5] = chr;
+	else if (col == I2LV) ((struct rl_samples*)data)->I2L_Valid += chr/100;
+	else if (col == I1H) ((struct rl_samples*)data)->rl_data[0] += chr/100;//+= chr/NUM_SAMPLES;
+	else if (col == I1L) ((struct rl_samples*)data)->rl_data[1] += chr/100;
+	else if (col == V1) ((struct rl_samples*)data)->rl_data[2] += chr/100;
+	else if (col == V2) ((struct rl_samples*)data)->rl_data[3] += chr/100;
+	else if (col == I2H) ((struct rl_samples*)data)->rl_data[4] += chr/100;
+	else if (col == I2L) ((struct rl_samples*)data)->rl_data[5] += chr/100;
 	
 	col++;
 }
 void cb2 (int c, void *data){
 	col = 0;
 }
+
+void cb3 (void *s, size_t len, void *data){
+	int chr = 0;
+	chr = strtol((char*)s, NULL, 10);
+
+	if (col == 0) ((struct tsamples*)data)->moisture = chr;
+	if (col == 1) ((struct tsamples*)data)->temp = chr;
+	if (col == 2) ((struct tsamples*)data)->rho = chr;
+	col++;
+}
+ 
+
+	
+
  
  
+ 
+/*******************************************************************************
+ * 
+ *	MAIN FUNCTION
+ * 
+ ******************************************************************************/ 
+
+
  
 int main(void){
-	printf("\nTest program compiled on %s at %s\n\n", __DATE__, __TIME__);
+	printf("\nProgram compiled on %s at %s\n\n", __DATE__, __TIME__);
+
+	if (AT_Init(UART2, BAUD96, TIMEOUT, DATA_RATE)){
+		printf("Error initializing module\n");
+		exit(EXIT_FAILURE);
+	}
 
 	int server = ipc_server("/tmp/libipc-example.socket");
-	printf("Made it\n");
 	
 	int cfd = ipc_server_accept(server);
-	printf("acc?\n");
-	
-	char buf[BUF_LEN];
-	int num_read;
-	printf("while\n");
-	while(1){
-		if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0){
-			printf("%s", buf);
-		} else printf("no\n");
-	}
-	
-	if (rc_uart_init(2, 9600, 1, 0, 1, 0) == -1){
-		printf("Error in UART2 initialization.\n");
-		// exit(EXIT_FAILURE);
-	}
-	if (AT_TestConnection(UART2)){
-		printf("Beaglebone not connected to E5 module.\n");
-		// exit(EXIT_FAILURE);
-	}
-	
-	if (AT_SetDataRate(UART2, 1)){
-		printf("Error setting device data rate.\n");
-	}
 
-	sleep(1);
-	char *tx2 = "AT+ADR=OFF\n";
-	AT_SerialTransmit(UART2, tx2);
+	// char buf[BUF_LEN];
+	int num_read;
+	struct tsamples ts = {0};
 	
 	FILE *fp;
     struct csv_parser p;
-    // char buf[BUFFER_SIZE];
-    size_t bytes_read;
+	struct csv_parser p2;
+    size_t bytes_read=BUF_LEN;
 	struct rl_samples rl = {0};
 	char trx[MAX_PAYLOAD_LENGTH] = {0};
-
+	int i;
+	char *buf;
+	
     if (csv_init(&p, 0) != 0){
-        printf("init fail\n");
+        printf("csv init fail\n");
         exit(EXIT_FAILURE);
     } 
+    if (csv_init(&p2, 0) != 0){
+        printf("csv2 init fail\n");
+        exit(EXIT_FAILURE);
+    } 
+    
     fp = fopen("samples/rocketlogger.csv", "r");
     if (!fp){
         printf("fopen fail\n");
         exit (EXIT_FAILURE);
     } 
+    
     csv_set_opts(&p, CSV_APPEND_NULL);
-    while ((bytes_read=fread(buf, 1, 1024, fp)) > 0){
-        if (csv_parse(&p, buf, bytes_read, cb1, cb2, &rl) != bytes_read) {
+    csv_set_opts(&p2, CSV_APPEND_NULL);
+    
+    //Get and process rocketlogger data
+    col=0;
+    while (i<100){
+    if ((bytes_read=getline(&buf, &bytes_read, fp)) > 0){//was while
+    	if (csv_parse(&p, buf, bytes_read, cb1, cb2, &rl) != bytes_read) {
             fprintf(stderr, "Error while parsing file: %s\n",
             csv_strerror(csv_error(&p)) );
             exit(EXIT_FAILURE);
         }
-    	sprintf(trx, "%i,%i,%i,%i,%i,%i", rl.rl_data[0], rl.rl_data[1], \
-    		rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5]);
-    	AT_SendString(UART2, trx);
-    	sleep(15);
-    	// AT_CheckDataRate(UART2);
-    	// memset(trx, 0, MAX_PAYLOAD_LENGTH);
+	}
+	i++;
     }
     
+    sprintf(trx, "%i,%i,%i,%i,%i,%i\n", rl.rl_data[0], rl.rl_data[1], \
+    	rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5]);
+    
+    printf("%s", trx);
+    // 	AT_SendString(UART2, trx);
+    
+    //Get and process teros data
+    // while(1){
+    col=0;
+    while ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0){
+		csv_parse(&p2, buf, num_read, cb3, cb2, &ts);
+		
+		printf("\n%i\t%i\t%i\n", ts.moisture, ts.temp, ts.rho);
+		
+	}
+	
+	// AT_SendString(UART2, buf);
+	
     csv_fini(&p, cb1, cb2, NULL);
     fclose(fp);
     printf("Finished parsing\n");
