@@ -10,6 +10,7 @@
  #include <string.h>
  #include "lora.h"
  #include "csv.h"
+ #include "ipc.h"
  
  //#define TESTING
  #define T_LORA
@@ -18,7 +19,7 @@
  #define BUFFER_SIZE 1024
  #define NUM_RL_FIELDS 6
  #define NUM_SAMPLES 500
- #
+ #define BUF_LEN 1024
 
 enum data_fields{TIMESTAMP = 0, I1LV, I2LV, I1H, I1L, V1, V2, I2H, I2L};
 
@@ -51,7 +52,22 @@ void cb2 (int c, void *data){
  
  
 int main(void){
-	printf("\nProgram compiled on %s at %s\n\n", __DATE__, __TIME__);
+	printf("\nTest program compiled on %s at %s\n\n", __DATE__, __TIME__);
+
+	int server = ipc_server("/tmp/libipc-example.socket");
+	printf("Made it\n");
+	
+	int cfd = ipc_server_accept(server);
+	printf("acc?\n");
+	
+	char buf[BUF_LEN];
+	int num_read;
+	printf("while\n");
+	while(1){
+		if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0){
+			printf("%s", buf);
+		} else printf("no\n");
+	}
 	
 	if (rc_uart_init(2, 9600, 1, 0, 1, 0) == -1){
 		printf("Error in UART2 initialization.\n");
@@ -72,7 +88,7 @@ int main(void){
 	
 	FILE *fp;
     struct csv_parser p;
-    char buf[BUFFER_SIZE];
+    // char buf[BUFFER_SIZE];
     size_t bytes_read;
 	struct rl_samples rl = {0};
 	char trx[MAX_PAYLOAD_LENGTH] = {0};
@@ -96,7 +112,7 @@ int main(void){
     	sprintf(trx, "%i,%i,%i,%i,%i,%i", rl.rl_data[0], rl.rl_data[1], \
     		rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5]);
     	AT_SendString(UART2, trx);
-    	sleep(10);
+    	sleep(15);
     	// AT_CheckDataRate(UART2);
     	// memset(trx, 0, MAX_PAYLOAD_LENGTH);
     }
