@@ -12,15 +12,7 @@ responses, open a serial terminal with
 LoRa-E5 modules default to a baudrate of 9600 (although if stuck in the bootloader, they'll send repeated "c's" at a speed of 115200). The grove
 module that we're currently using is connected to UART2 (thus ttyO2).
 
-Right now, rc_uart_init doesn't work properly. All of the other functions seem to be working properly. I've been initializing the UART bus
-using a python library just so I can get actual work done, rather than pigeonholing on the init function. Until I can get it to work, the
-easiest option is to just do 
-```
-~$ python
-    >>> import Adafruit_BBIO.UART as UART
-    >>> UART.setup("UART2")
-    >>> quit()
-```
+If you need to use a different UART bus, check out the configuration settings in AT_Init.
 
 ## Keys/Activation
 
