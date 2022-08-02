@@ -18,13 +18,15 @@
  
 #define NUM_RL_FIELDS 6
 #define NUM_SAMPLES 500
+#define NUM_TSAMPLES 2
 #define BUF_LEN 1024
 
 #define PARSE_PREP col = 0; \
 	num_samples = 1;
 
-#define IT_AVG(index, inp, samp) ((struct rl_samples*)data)->rl_data[index] +=  \
+#define RL_IT_AVG(index, inp, samp) ((struct rl_samples*)data)->rl_data[index] +=  \
 			(inp-((struct rl_samples*)data)->rl_data[index])/samp;
+			
 
 enum data_fields{TIMESTAMP = 0, I1LV, I2LV, I1H, I1L, V1, V2, I2H, I2L};
 
@@ -54,33 +56,39 @@ void cb1 (void *s, size_t len, void *data){
 	if (col == I1LV) ((struct rl_samples*)data)->I1L_Valid = chr;
 	else if (col == I2LV) ((struct rl_samples*)data)->I2L_Valid = chr;
 	else if (col == I1H) {
-		IT_AVG(0, chr, num_samples);
+		RL_IT_AVG(0, chr, num_samples);
 	} else if (col == I1L){
-		IT_AVG(1, chr, num_samples);
+		RL_IT_AVG(1, chr, num_samples);
 	} else if (col == V1){
-		IT_AVG(2, chr, num_samples);
+		RL_IT_AVG(2, chr, num_samples);
 	} else if (col == V2){
-		IT_AVG(3, chr, num_samples);
+		RL_IT_AVG(3, chr, num_samples);
 	} else if (col == I2H){
-		IT_AVG(4, chr, num_samples);
+		RL_IT_AVG(4, chr, num_samples);
 	} else if (col == I2L){
-		IT_AVG(5, chr, num_samples);
+		RL_IT_AVG(5, chr, num_samples);
 	}
 	col++;
 }
 void cb2 (int c, void *data){
 	col = 0;
 	num_samples++;
-	printf("num samples: %i\n", num_samples);
 }
 
 void cb3 (void *s, size_t len, void *data){
 	int chr = 0;
 	chr = strtol((char*)s, NULL, 10);
 
-	if (col == 0) ((struct tsamples*)data)->moisture = chr;
-	if (col == 1) ((struct tsamples*)data)->temp = chr;
-	if (col == 2) ((struct tsamples*)data)->rho = chr;
+	if (col == 0){
+		((struct tsamples*)data)->moisture += \
+			(chr-((struct tsamples*)data)->moisture)/num_samples;
+	} else if (col == 1){
+		((struct tsamples*)data)->temp += \
+			(chr-((struct tsamples*)data)->temp)/num_samples;
+	} else if (col == 2){
+		((struct tsamples*)data)->rho += \
+			(chr-((struct tsamples*)data)->rho)/num_samples;
+	}
 	col++;
 }
  
@@ -100,6 +108,11 @@ int main(void){
 	if (AT_Init()){
 		printf("Error initializing module\n");
 		exit(EXIT_FAILURE);
+	}
+	
+	//doesn't work inside of at_init for some reason
+	if (AT_SetDataRate(UART2, 2) == -1){
+		printf("Error setting datarate.\n");
 	}
 
 	int server = ipc_server("/tmp/libipc-example.socket");
@@ -149,31 +162,28 @@ int main(void){
             exit(EXIT_FAILURE);
         }
 	}
-
-	sprintf(trx, "%i,%i,%i,%i,%i,%i", rl.rl_data[0], rl.rl_data[1], \
-    	rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5]);
     
-    printf("%s", trx);
-return 0;
-	while(1){
-      AT_SendString(UART2, trx);
-      sleep(15);
+
+    //Get and process teros data
+    PARSE_PREP;
+    while(num_samples<=NUM_TSAMPLES){
+    	if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0){
+			csv_parse(&p2, buf, num_read, cb3, cb2, &ts);
+			printf("\n%i\t%i\t%i\n", ts.moisture, ts.temp, ts.rho);
+		}
     }
     
-    //Get and process teros data
-    // while(1){
-    col=0;
-    while ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0){
-		csv_parse(&p2, buf, num_read, cb3, cb2, &ts);
-		printf("\n%i\t%i\t%i\n", ts.moisture, ts.temp, ts.rho);
-	}
-	
-	// AT_SendString(UART2, buf);
+	sprintf(trx, "%i,%i,%i,%i,%i,%i,%i,%i,%i", rl.rl_data[0], rl.rl_data[1], \
+    	rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5],ts.moisture,\
+    	ts.temp,ts.rho);
+    	
+    AT_SendString(UART2, trx);
 	
     csv_fini(&p, cb1, cb2, NULL);
+    csv_fini(&p2, cb3, NULL, NULL);
     fclose(fp);
-    printf("Finished parsing\n");
     csv_free(&p);
+    csv_free(&p2);
     
     exit(EXIT_SUCCESS);
 }
@@ -219,8 +229,6 @@ int main(void){
 	if (ATModule_CheckID(UART2)){
 		printf("Error retrieving device ID info.\n");
 	}
-	
-
 	
 	//Commented out for same reason as SetNwkSKey
 	if (ATModule_SetDataRate(UART2, 1)){

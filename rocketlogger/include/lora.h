@@ -11,7 +11,7 @@
 #define PAR 0 //parity
 #define DATA_RATE 1
 
-#define MAX_PAYLOAD_LENGTH 60 //53 characters maximum
+#define MAX_PAYLOAD_LENGTH 126 //53 characters maximum
 #define SKEY_MSG_LEN 52
 
 #define SUCCESS 0

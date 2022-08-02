@@ -171,7 +171,7 @@ int AT_SetDataRate(int bus, int rate){
 	
 	char data[MAX_PAYLOAD_LENGTH];
 	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
-	snprintf(data, 11, "AT+DR=%i\n", rate);
+	snprintf(data, 11, "AT+DR=dr%i\n", rate);
 	
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
 	
@@ -221,10 +221,10 @@ int AT_Init(void){
 	system("config-pin P9.22 uart\n");
 	system("stty -F /dev/ttyS2 9600 cs8 -cstopb -parenb\n");
 	
-// 	if (rc_uart_init(UART2, 9600, 1, CAN_EN, SB, PAR) == -1){
-// 		printf("Error in UART2 initialization.\n");
-// 		// return ERROR;
-// 	}
+	if (rc_uart_init(UART2, 9600, 1, CAN_EN, SB, PAR) == -1){
+		printf("Error in UART2 initialization.\n");
+		// return ERROR;
+	}
 	
 	if (AT_TestConnection(UART2)){
 		printf("Beaglebone not connected to E5 module.\n");
@@ -236,9 +236,7 @@ int AT_Init(void){
 		printf("Error setting ADR function.\n");
 	}
 	
-	if (AT_SetDataRate(UART2, 2) == -1){
-		printf("Error setting datarate.\n");
-	}
+    // rc_uart_write(UART2, (uint8_t*)"AT+DR=dr2\n", strlen("AT+DR=2\n"));
 
 	return SUCCESS;
 }
