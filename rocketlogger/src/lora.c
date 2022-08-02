@@ -215,15 +215,16 @@ int AT_SendString(int bus, char *str){
 	
 }
 
-int AT_Init(int bus, int baud, int timeout, int DR){
-	VERIFY_BUS(bus);
-	if (baud<0) return BAD_BAUD;
-	if (timeout<0 || timeout>1000) return BAD_TIMEOUT;
+int AT_Init(void){
 	
-	if (rc_uart_init(bus, baud, timeout, CAN_EN, SB, PAR) == -1){
-		printf("Error in UART2 initialization.\n");
-		// return ERROR;
-	}
+	system("config-pin P9.21 uart\n");
+	system("config-pin P9.22 uart\n");
+	system("stty -F /dev/ttyS2 9600 cs8 -cstopb -parenb\n");
+	
+// 	if (rc_uart_init(UART2, 9600, 1, CAN_EN, SB, PAR) == -1){
+// 		printf("Error in UART2 initialization.\n");
+// 		// return ERROR;
+// 	}
 	
 	if (AT_TestConnection(UART2)){
 		printf("Beaglebone not connected to E5 module.\n");
@@ -235,7 +236,7 @@ int AT_Init(int bus, int baud, int timeout, int DR){
 		printf("Error setting ADR function.\n");
 	}
 	
-	if (AT_SetDataRate(UART2, DR) == -1){
+	if (AT_SetDataRate(UART2, 2) == -1){
 		printf("Error setting datarate.\n");
 	}
 

@@ -28,7 +28,7 @@ enum error_codes {
 
 // int Grove_Init(int bus, int baud, int timeout, int stop_bits, int parity);
 
-int AT_Init(int bus, int baud, int timeout, int DR);
+int AT_Init(void);
 int AT_SerialTransmit(int bus, char *data);
 int AT_SerialReceive(int bus, uint8_t buf[]);
 int AT_TestConnection(int bus);

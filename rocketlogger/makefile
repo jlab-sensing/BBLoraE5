@@ -11,7 +11,7 @@ EXE := $(BIN_DIR)/lora
 SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-CPPFLAGS := -Iinclude -MMD -MP
+CPPFLAGS := -Iinclude -MMD -MP -g
 CFLAGS := -Wall
 LDFLAGS := -Llib
 LDLIBS := -lm
