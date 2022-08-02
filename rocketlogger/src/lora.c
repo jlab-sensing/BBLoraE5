@@ -210,7 +210,7 @@ int AT_SendString(int bus, char *str){
 		printf("Error transmitting message data.\n");
 		return TX_ERROR;
 	}
-	printf("The string is: %s\n", data);
+	// printf("Sent string: %s\n", data);
 	return SUCCESS;
 	
 }

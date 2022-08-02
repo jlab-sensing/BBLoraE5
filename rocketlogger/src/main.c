@@ -12,14 +12,16 @@
 #include "csv.h"
 #include "ipc.h"
  
-//#define TESTING
-#define T_LORA
-//#define T_CSV
- 
 #define NUM_RL_FIELDS 6
 #define NUM_SAMPLES 500
 #define NUM_TSAMPLES 2
 #define BUF_LEN 1024
+
+/*******************************************************************************
+ * 
+ * MACRO DEFINITIONS
+ * 
+ ******************************************************************************/ 
 
 #define PARSE_PREP col = 0; \
 	num_samples = 1;
@@ -27,7 +29,12 @@
 #define RL_IT_AVG(index, inp, samp) ((struct rl_samples*)data)->rl_data[index] +=  \
 			(inp-((struct rl_samples*)data)->rl_data[index])/samp;
 			
-
+/*******************************************************************************
+ * 
+ * DATA TYPES/GLOBAL VARIABLES
+ * 
+ ******************************************************************************/ 
+ 
 enum data_fields{TIMESTAMP = 0, I1LV, I2LV, I1H, I1L, V1, V2, I2H, I2L};
 
 struct rl_samples{
@@ -46,20 +53,24 @@ static int num_samples = 1;
 
 /*******************************************************************************
  * 
- * HELPER FUNCTIONS
+ * CALLBACK FUNCTIONS
  * 
  ******************************************************************************/ 
+ 
 void cb1 (void *s, size_t len, void *data){
 	int chr = 0;
 	chr = strtol((char*)s, NULL, 10);
+	
 	//quick n easy, change later
-	if (col == I1LV) ((struct rl_samples*)data)->I1L_Valid = chr;
-	else if (col == I2LV) ((struct rl_samples*)data)->I2L_Valid = chr;
-	else if (col == I1H) {
+	if (col == I1LV){ 
+		((struct rl_samples*)data)->I1L_Valid = chr;
+	} else if (col == I2LV){ 
+		((struct rl_samples*)data)->I2L_Valid = chr;
+	} else if (col == I1H){ 
 		RL_IT_AVG(0, chr, num_samples);
-	} else if (col == I1L){
+	} else if (col == I1L){ 
 		RL_IT_AVG(1, chr, num_samples);
-	} else if (col == V1){
+	} else if (col == V1){ 
 		RL_IT_AVG(2, chr, num_samples);
 	} else if (col == V2){
 		RL_IT_AVG(3, chr, num_samples);
@@ -67,7 +78,8 @@ void cb1 (void *s, size_t len, void *data){
 		RL_IT_AVG(4, chr, num_samples);
 	} else if (col == I2L){
 		RL_IT_AVG(5, chr, num_samples);
-	}
+	} 
+	
 	col++;
 }
 void cb2 (int c, void *data){
@@ -101,7 +113,6 @@ void cb3 (void *s, size_t len, void *data){
  ******************************************************************************/ 
 
 
- 
 int main(void){
 	printf("\nProgram compiled on %s at %s\n\n", __DATE__, __TIME__);
 
@@ -114,12 +125,12 @@ int main(void){
 	if (AT_SetDataRate(UART2, 2) == -1){
 		printf("Error setting datarate.\n");
 	}
-
+	
+	//update socket with correct name for implementation
 	int server = ipc_server("/tmp/libipc-example.socket");
 
 	int cfd = ipc_server_accept(server);
 	
-	int i;
 	int num_read;
 	size_t bytes_read=BUF_LEN;
 
@@ -142,7 +153,8 @@ int main(void){
         printf("csv2 init fail\n");
         exit(EXIT_FAILURE);
     } 
-
+	
+	//update file path for proper implementation
     fp = fopen("samples/rocketlogger.csv", "r");
 	
 	if (!fp){
@@ -162,14 +174,13 @@ int main(void){
             exit(EXIT_FAILURE);
         }
 	}
-    
 
     //Get and process teros data
     PARSE_PREP;
     while(num_samples<=NUM_TSAMPLES){
     	if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0){
 			csv_parse(&p2, buf, num_read, cb3, cb2, &ts);
-			printf("\n%i\t%i\t%i\n", ts.moisture, ts.temp, ts.rho);
+			// printf("\n%i\t%i\t%i\n", ts.moisture, ts.temp, ts.rho);
 		}
     }
     
@@ -187,118 +198,3 @@ int main(void){
     
     exit(EXIT_SUCCESS);
 }
- 
- 
- 
- 
- 
-/*******************************************************************************
- *
- * TESTING
- * 
- ******************************************************************************/
-#ifdef TESTING
-int main(void){
-	printf("\nBegin testing on %s at %s\n\n", __DATE__, __TIME__);
-	
-	if (rc_uart_init(2, 9600, 1, 0, 1, 0) == -1){
-		printf("Error in UART2 initialization.\n");
-	}
-
-	if (ATModule_TestConnection(UART2)){
-		printf("Beaglebone not connected to E5 module.\n");
-	} else{ 
-		printf("Beaglebone is connected.\n");
-	}
-	
-#ifdef T_LORA
-	if (ATModule_CheckVersion(UART2)){
-		printf("Error retrieving version.\n");	
-	}
-	
-	/* Commented out because I don't want to set the network session key each
-	/  time I test functions. I verified that it works with our current key.
-	/  Because SetNwkSKey works, SetAppSKey should too since they're essentially
-	/  identical.
-	*/
-	// char *nwkskey = "bf6eaef13678c9d708b1f8fd9db1b710";
-	// if (ATModule_SetNwkSKey(UART2, (uint8_t*)nwkskey)){
-	// 	printf("Error setting NwkSkey.\n");
-	// }
-	
-	if (ATModule_CheckID(UART2)){
-		printf("Error retrieving device ID info.\n");
-	}
-	
-	//Commented out for same reason as SetNwkSKey
-	if (ATModule_SetDataRate(UART2, 1)){
-		printf("Error setting device data rate.\n");
-	}
-	
-	if (ATModule_CheckDataRate(UART2)){
-		printf("Error retrieving device data rate.\n");
-	}
-	ATModule_SerialTransmit(UART2, "AT+CH\n");
-	rc_usleep(5000);
-	ATModule_SerialTransmit(UART2, "AT+LW=LEN\n");
-	rc_usleep(5000);
-	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
-	ATModule_SerialReceive(UART2, buf);
-	printf("%s\n", buf);
-	// if (ATModule_LowPower(UART2, 0)){
-	// 	printf("Error entering low-power mode.\n");
-	// }
-	
-	
-	char *str= "Dick and Balls";
-	if (ATModule_SendString(UART2, str)){
-		printf("Error sending string.\n");
-	}
-	
-#endif
-
-#ifdef T_CSV
-		
-	FILE *fp;
-    struct csv_parser p;
-    char buf[BUFFER_SIZE];
-    size_t bytes_read;
-	struct rl_samples rl = {0};
-
-    if (csv_init(&p, 0) != 0){
-        printf("init fail\n");
-        exit(EXIT_FAILURE);
-    } 
-    fp = fopen("samples/rocketlogger.csv", "r");
-    if (!fp){
-        printf("fopen fail\n");
-        exit (EXIT_FAILURE);
-    } 
-    csv_set_opts(&p, CSV_APPEND_NULL);
-    while ((bytes_read=fread(buf, 1, 1024, fp)) > 0){
-        if (csv_parse(&p, buf, bytes_read, cb1, cb2, &rl) != bytes_read) {
-            fprintf(stderr, "Error while parsing file: %s\n",
-            csv_strerror(csv_error(&p)) );
-            exit(EXIT_FAILURE);
-        }
-    }
-        csv_fini(&p, cb1, cb2, NULL);
-        fclose(fp);
-        printf("Finished parsing\n");
-        csv_free(&p);
-        printf("I1H Avg: %i\n", rl.rl_data[I1H-3]);
-        printf("I1L Avg: %i\n", rl.rl_data[I1L-3]);
-        printf("V1 Avg: %i\n", rl.rl_data[V1-3]);
-        printf("V2 Avg: %i\n", rl.rl_data[V2-3]);
-        printf("I2H Avg: %i\n", rl.rl_data[I2H-3]);
-        printf("I1L Avg: %i\n", rl.rl_data[I1L-3]);
-        
-        
-        exit(EXIT_SUCCESS);
-#endif
-
-
-
-	return 0;
-}
-#endif
