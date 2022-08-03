@@ -60,6 +60,7 @@ static int num_samples = 1;
 void cb1 (void *s, size_t len, void *data){
 	int chr = 0;
 	chr = strtol((char*)s, NULL, 10);
+	// printf("chr:%i\t samp:%i\t col:%i\n", chr, num_samples,col);
 	
 	//quick n easy, change later
 	if (col == I1LV){ 
@@ -67,17 +68,35 @@ void cb1 (void *s, size_t len, void *data){
 	} else if (col == I2LV){ 
 		((struct rl_samples*)data)->I2L_Valid = chr;
 	} else if (col == I1H){ 
-		RL_IT_AVG(0, chr, num_samples);
+		// RL_IT_AVG(0, chr, num_samples);
+		((struct rl_samples*)data)->rl_data[0] +=  \
+			(chr-((struct rl_samples*)data)->rl_data[0])/num_samples;
+		// printf("ind0\t val: %i", chr);
 	} else if (col == I1L){ 
-		RL_IT_AVG(1, chr, num_samples);
+		// RL_IT_AVG(1, chr, num_samples);
+		((struct rl_samples*)data)->rl_data[1] +=  \
+			(chr-((struct rl_samples*)data)->rl_data[1])/num_samples;
+			// printf("ind1\t val: %i", chr);
 	} else if (col == V1){ 
-		RL_IT_AVG(2, chr, num_samples);
+		// RL_IT_AVG(2, chr, num_samples);
+		((struct rl_samples*)data)->rl_data[2] +=  \
+			(chr-((struct rl_samples*)data)->rl_data[2])/num_samples;
+			// printf("ind2\t val: %i", chr);
 	} else if (col == V2){
-		RL_IT_AVG(3, chr, num_samples);
+		// RL_IT_AVG(3, chr, num_samples);
+		((struct rl_samples*)data)->rl_data[3] +=  \
+			(chr-((struct rl_samples*)data)->rl_data[3])/num_samples;
+			// printf("ind3\t val: %i", chr);
 	} else if (col == I2H){
-		RL_IT_AVG(4, chr, num_samples);
+		// RL_IT_AVG(4, chr, num_samples);
+		((struct rl_samples*)data)->rl_data[4] +=  \
+			(chr-((struct rl_samples*)data)->rl_data[4])/num_samples;
+			// printf("ind4\t val: %i", chr);
 	} else if (col == I2L){
-		RL_IT_AVG(5, chr, num_samples);
+		// RL_IT_AVG(5, chr, num_samples);
+		((struct rl_samples*)data)->rl_data[5] +=  \
+			(chr-((struct rl_samples*)data)->rl_data[5])/num_samples;
+			// printf("ind5\t val: %i", chr);
 	} 
 	
 	col++;
@@ -91,13 +110,13 @@ void cb3 (void *s, size_t len, void *data){
 	int chr = 0;
 	chr = strtol((char*)s, NULL, 10);
 
-	if (col == 0){
+	if (col == 2){
 		((struct tsamples*)data)->moisture += \
 			(chr-((struct tsamples*)data)->moisture)/num_samples;
-	} else if (col == 1){
+	} else if (col == 3){
 		((struct tsamples*)data)->temp += \
 			(chr-((struct tsamples*)data)->temp)/num_samples;
-	} else if (col == 2){
+	} else if (col == 4){
 		((struct tsamples*)data)->rho += \
 			(chr-((struct tsamples*)data)->rho)/num_samples;
 	}
@@ -116,25 +135,27 @@ void cb3 (void *s, size_t len, void *data){
 int main(void){
 	printf("\nProgram compiled on %s at %s\n\n", __DATE__, __TIME__);
 
-	if (AT_Init()){
-		printf("Error initializing module\n");
-		exit(EXIT_FAILURE);
-	}
+	// if (AT_Init()){
+	// 	printf("Error initializing module\n");
+	// 	exit(EXIT_FAILURE);
+	// }
 	
-	//doesn't work inside of at_init for some reason
-	if (AT_SetDataRate(UART2, 2) == -1){
-		printf("Error setting datarate.\n");
-	}
+	// //doesn't work inside of at_init for some reason
+	// if (AT_SetDataRate(UART2, 2) == -1){
+	// 	printf("Error setting datarate.\n");
+	// }
 	
 	//update socket with correct name for implementation
-	int server = ipc_server("/tmp/libipc-example.socket");
-
-	int cfd = ipc_server_accept(server);
+	int t_server = ipc_server("/tmp/terosstream.socket");
+	int cfd = ipc_server_accept(t_server);
 	
+	int rl_server = ipc_server("/tmp/rlstream.socket");
+	int sfd = ipc_server_accept(rl_server);
+
 	int num_read;
 	size_t bytes_read=BUF_LEN;
 
-	FILE *fp;
+	// FILE *fp;
     struct csv_parser p;
 	struct csv_parser p2;
     
@@ -155,25 +176,28 @@ int main(void){
     } 
 	
 	//update file path for proper implementation
-    fp = fopen("samples/rocketlogger.csv", "r");
+    // fp = fopen("samples/rocketlogger.csv", "r");
 	
-	if (!fp){
-        printf("fopen fail\n");
-        exit (EXIT_FAILURE);
-    } 
+	// if (!fp){
+ //       printf("fopen fail\n");
+ //       exit (EXIT_FAILURE);
+ //   } 
 
     csv_set_opts(&p, CSV_APPEND_NULL);
     csv_set_opts(&p2, CSV_APPEND_NULL);
 
 	//Get and process rocketlogger data
     PARSE_PREP;
-    while((bytes_read=fread(&buf, 1, 1024, fp)) > 0){//was while
-    	if (csv_parse(&p, buf, bytes_read, cb1, cb2, &rl) != bytes_read) {
-            fprintf(stderr, "Error while parsing file: %s\n",
-            csv_strerror(csv_error(&p)) );
-            exit(EXIT_FAILURE);
-        }
-	}
+    // while((bytes_read=fread(&buf, 1, 1024, fp)) > 0){//was while
+    while(num_samples<=NUM_TSAMPLES){
+    	if ((num_read=ipc_read(sfd, buf, BUF_LEN)) > 0){
+    		if (csv_parse(&p, buf, num_read, cb1, cb2, &rl) != num_read) {
+            	fprintf(stderr, "Error while parsing file: %s\n",
+            	csv_strerror(csv_error(&p)) );
+            	exit(EXIT_FAILURE);
+        	}
+		}
+    }
 
     //Get and process teros data
     PARSE_PREP;
@@ -188,11 +212,12 @@ int main(void){
     	rl.rl_data[2], rl.rl_data[3], rl.rl_data[4], rl.rl_data[5],ts.moisture,\
     	ts.temp,ts.rho);
     	
-    AT_SendString(UART2, trx);
+    printf("%s", trx);
+    // AT_SendString(UART2, trx);
 	
     csv_fini(&p, cb1, cb2, NULL);
     csv_fini(&p2, cb3, NULL, NULL);
-    fclose(fp);
+    // fclose(fp);
     csv_free(&p);
     csv_free(&p2);
     

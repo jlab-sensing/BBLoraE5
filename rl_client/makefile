@@ -3,11 +3,11 @@ CC = gcc
 #LDIR = /usr/lib
 
 #/usr/src /usr/local/src
-SRC_DIR := /usr/local/BBLoraE5/teros/src
-OBJ_DIR := /usr/local/BBLoraE5/teros/lib
+SRC_DIR := /usr/local/BBLoraE5/rl_client/src
+OBJ_DIR := /usr/local/BBLoraE5/rl_client/lib
 BIN_DIR := .
 
-EXE := $(BIN_DIR)/lipc
+EXE := $(BIN_DIR)/rlcli
 SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 

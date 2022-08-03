@@ -1,26 +1,22 @@
 CC = gcc
 #IDIR = /usr/include /usr/local/include
 #LDIR = /usr/lib
-s
 
 #/usr/src /usr/local/src
-SRC_DIR := /usr/local/BBLoraE5/rocketlogger/src
-OBJ_DIR := /usr/local/BBLoraE5/rocketlogger/lib
+SRC_DIR := /usr/local/BBLoraE5/teros_client/src
+OBJ_DIR := /usr/local/BBLoraE5/teros_client/lib
 BIN_DIR := .
 
-EXE := $(BIN_DIR)/lora #/usr/local/BBLoraE5/bin/lora 
+EXE := $(BIN_DIR)/tcli
 SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-CPPFLAGS := -Iinclude -MMD -MP -g
+CPPFLAGS := -Iinclude -MMD -MP
 CFLAGS := -Wall
 LDFLAGS := -Llib
 LDLIBS := -lm
 
 .PHONY: all clean
-
-install: all
-	install -m 777 lora /usr/bin
 
 all: $(EXE)
 
@@ -35,8 +31,7 @@ $(BIN_DIR) $(OBJ_DIR):
 	
 clean:
 	@$(RM) -rv $(BIN_DIR) $(OBJ_DIR)
-
-
+	
 -include $(OBJ:.o=.d)
 
 #lora: lora.c librobotcontrol.so
