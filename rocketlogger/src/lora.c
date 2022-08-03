@@ -55,9 +55,6 @@ int AT_TestConnection(int bus){
 	//send message "AT" to test connection with e5 module
 	if (AT_SerialTransmit(bus, "AT\n")){return TX_ERROR;}
 	
-	//wait 50ms, arbitrary, maybe not even needed
-	rc_usleep(5000);
-	
 	//e-5 module should return "+AT: OK"
 	char *resp = "+AT: OK"; //expected response
 	int len = strlen(resp);
@@ -79,17 +76,25 @@ int AT_CheckVersion(int bus){
 	uint8_t incoming[MAX_PAYLOAD_LENGTH] = {0};
 
 	//Retrieve module firmware version
-	if (AT_SerialTransmit(bus, "AT+VER\n")){return TX_ERROR;}
-	rc_usleep(5000);	//wait 50ms, arbitrary, maybe not even needed
-	if (AT_SerialReceive(bus, incoming)){return RX_ERROR;}
+	if (AT_SerialTransmit(bus, "AT+VER\n")){
+		return TX_ERROR;
+	}
+	
+	if (AT_SerialReceive(bus, incoming)) {
+		return RX_ERROR;
+	}
 	
 	//tbd: instead of printing here, maybe place it in an argument buffer?
 	printf("Firmware version: %s\n", (char*)&incoming);
 	
 	//Retrieve LoRaWAN version
-	if (AT_SerialTransmit(bus, "AT+LW=VER\n")){return TX_ERROR;}
-	rc_usleep(5000);
-	if (AT_SerialReceive(bus, incoming)){return RX_ERROR;}
+	if (AT_SerialTransmit(bus, "AT+LW=VER\n")) {
+		return TX_ERROR;
+	}
+	
+	if (AT_SerialReceive(bus, incoming)) {
+		return RX_ERROR;
+	}
 	
 	printf("LoRaWAN version: %s\n", (char*)&incoming);
 	return SUCCESS;
@@ -100,9 +105,9 @@ int AT_CheckID(int bus){
 	int i;
 	uint8_t incoming[MAX_PAYLOAD_LENGTH];
 	
-	if (AT_SerialTransmit(bus, "AT+ID\n")){return TX_ERROR;}
-	
-	rc_usleep(5000);//again, maybe not necessary but for peace of mind
+	if (AT_SerialTransmit(bus, "AT+ID\n")) {
+		return TX_ERROR;
+	}
 	
 	//Print DevAddr, DevEui, AppEui
 	//would like to use while loop to retrive data until empty but it loops
@@ -121,8 +126,7 @@ int AT_CheckDataRate(int bus){
 	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
 	//request device to send data rate
 	if (AT_SerialTransmit(bus, "AT+DR\n")){return TX_ERROR;}
-	//probably not necessary, for peace of mind
-	rc_usleep(5000);
+
 	//collect response from AT module
 	/*I read from the UART bus twice because the response consists of two parts:
 	*	>DR0
@@ -140,6 +144,7 @@ int AT_SetNwkSKey(int bus, uint8_t *key){
 	//need to ensure that network session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
+	
 	//place string into buffer
 	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%s\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
@@ -155,6 +160,7 @@ int AT_SetAppSKey(int bus, uint8_t *key){
 	//need to ensure that application session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
+	
 	//place string into buffer
 	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%s\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
@@ -173,12 +179,17 @@ int AT_SetDataRate(int bus, int rate){
 	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
 	snprintf(data, 11, "AT+DR=dr%i\n", rate);
 	
-	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
+	if (AT_SerialTransmit(bus, data)){
+		return TX_ERROR;
+	}
 	
-	rc_usleep(5000);
+	if (AT_SerialReceive(bus, buf)) {
+		return RX_ERROR;
+	}
 	
-	if (AT_SerialReceive(bus, buf)){return RX_ERROR;}
-	if (AT_SerialReceive(bus, buf)){return RX_ERROR;}
+	if (AT_SerialReceive(bus, buf)) {
+		return RX_ERROR;
+	}
 	
 	printf("New data rate: %s\n", buf);
 	return SUCCESS;
@@ -186,7 +197,7 @@ int AT_SetDataRate(int bus, int rate){
 
 int AT_LowPower(int bus, int timeout){
 	VERIFY_BUS(bus);
-	if (timeout<0){return ERROR;}
+	if (timeout<0)return ERROR;
 	
 	if (timeout){
 		char data[MAX_PAYLOAD_LENGTH] = {0};

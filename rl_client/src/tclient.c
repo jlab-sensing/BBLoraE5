@@ -9,7 +9,7 @@
 int main(int argc, char * argv[]) {
 	printf("Teros client with libipc, compiled on %s %s\n", __DATE__, __TIME__);
 
-	int client = ipc_client("/tmp/rlstream.socket");
+	int client = ipc_client("/tmp/terosstream.socket");
 
 	char buf[BUF_LEN];
 	int num_read;

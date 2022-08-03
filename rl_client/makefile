@@ -1,8 +1,5 @@
 CC = gcc
-#IDIR = /usr/include /usr/local/include
-#LDIR = /usr/lib
 
-#/usr/src /usr/local/src
 SRC_DIR := /usr/local/BBLoraE5/rl_client/src
 OBJ_DIR := /usr/local/BBLoraE5/rl_client/lib
 BIN_DIR := .
@@ -21,7 +18,7 @@ LDLIBS := -lm
 all: $(EXE)
 
 $(EXE): $(OBJ) | $(BIN_DIR)
-	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@ /usr/lib/librobotcontrol.so
+	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 	
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@

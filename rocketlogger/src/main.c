@@ -11,7 +11,7 @@
 #include "lora.h"
 #include "csv.h"
 #include "ipc.h"
- 
+
 #define NUM_RL_FIELDS 6
 #define NUM_SAMPLES 500
 #define NUM_TSAMPLES 2
@@ -60,43 +60,24 @@ static int num_samples = 1;
 void cb1 (void *s, size_t len, void *data){
 	int chr = 0;
 	chr = strtol((char*)s, NULL, 10);
-	// printf("chr:%i\t samp:%i\t col:%i\n", chr, num_samples,col);
-	
+
 	//quick n easy, change later
 	if (col == I1LV){ 
 		((struct rl_samples*)data)->I1L_Valid = chr;
 	} else if (col == I2LV){ 
 		((struct rl_samples*)data)->I2L_Valid = chr;
 	} else if (col == I1H){ 
-		// RL_IT_AVG(0, chr, num_samples);
-		((struct rl_samples*)data)->rl_data[0] +=  \
-			(chr-((struct rl_samples*)data)->rl_data[0])/num_samples;
-		// printf("ind0\t val: %i", chr);
+		RL_IT_AVG(0, chr, num_samples);
 	} else if (col == I1L){ 
-		// RL_IT_AVG(1, chr, num_samples);
-		((struct rl_samples*)data)->rl_data[1] +=  \
-			(chr-((struct rl_samples*)data)->rl_data[1])/num_samples;
-			// printf("ind1\t val: %i", chr);
+		RL_IT_AVG(1, chr, num_samples);
 	} else if (col == V1){ 
-		// RL_IT_AVG(2, chr, num_samples);
-		((struct rl_samples*)data)->rl_data[2] +=  \
-			(chr-((struct rl_samples*)data)->rl_data[2])/num_samples;
-			// printf("ind2\t val: %i", chr);
+		RL_IT_AVG(2, chr, num_samples);
 	} else if (col == V2){
-		// RL_IT_AVG(3, chr, num_samples);
-		((struct rl_samples*)data)->rl_data[3] +=  \
-			(chr-((struct rl_samples*)data)->rl_data[3])/num_samples;
-			// printf("ind3\t val: %i", chr);
+		RL_IT_AVG(3, chr, num_samples);
 	} else if (col == I2H){
-		// RL_IT_AVG(4, chr, num_samples);
-		((struct rl_samples*)data)->rl_data[4] +=  \
-			(chr-((struct rl_samples*)data)->rl_data[4])/num_samples;
-			// printf("ind4\t val: %i", chr);
+		RL_IT_AVG(4, chr, num_samples);
 	} else if (col == I2L){
-		// RL_IT_AVG(5, chr, num_samples);
-		((struct rl_samples*)data)->rl_data[5] +=  \
-			(chr-((struct rl_samples*)data)->rl_data[5])/num_samples;
-			// printf("ind5\t val: %i", chr);
+		RL_IT_AVG(5, chr, num_samples);
 	} 
 	
 	col++;
@@ -122,7 +103,6 @@ void cb3 (void *s, size_t len, void *data){
 	}
 	col++;
 }
- 
 
  
 /*******************************************************************************
@@ -155,7 +135,6 @@ int main(void){
 	int num_read;
 	size_t bytes_read=BUF_LEN;
 
-	// FILE *fp;
     struct csv_parser p;
 	struct csv_parser p2;
     
@@ -175,13 +154,6 @@ int main(void){
         exit(EXIT_FAILURE);
     } 
 	
-	//update file path for proper implementation
-    // fp = fopen("samples/rocketlogger.csv", "r");
-	
-	// if (!fp){
- //       printf("fopen fail\n");
- //       exit (EXIT_FAILURE);
- //   } 
 
     csv_set_opts(&p, CSV_APPEND_NULL);
     csv_set_opts(&p2, CSV_APPEND_NULL);
@@ -189,8 +161,8 @@ int main(void){
 	//Get and process rocketlogger data
     PARSE_PREP;
     // while((bytes_read=fread(&buf, 1, 1024, fp)) > 0){//was while
-    while(num_samples<=NUM_TSAMPLES){
-    	if ((num_read=ipc_read(sfd, buf, BUF_LEN)) > 0){
+    while (num_samples <= NUM_TSAMPLES) {
+    	if ((num_read=ipc_read(sfd, buf, BUF_LEN)) > 0) {
     		if (csv_parse(&p, buf, num_read, cb1, cb2, &rl) != num_read) {
             	fprintf(stderr, "Error while parsing file: %s\n",
             	csv_strerror(csv_error(&p)) );
@@ -201,10 +173,13 @@ int main(void){
 
     //Get and process teros data
     PARSE_PREP;
-    while(num_samples<=NUM_TSAMPLES){
-    	if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0){
-			csv_parse(&p2, buf, num_read, cb3, cb2, &ts);
-			// printf("\n%i\t%i\t%i\n", ts.moisture, ts.temp, ts.rho);
+    while (num_samples <= NUM_TSAMPLES) {
+    	if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0) {
+			if (csv_parse(&p2, buf, num_read, cb3, cb2, &ts) != num_read) {
+				fprintf(stderr, "Error while parsing file: %s\n",
+            	csv_strerror(csv_error(&p2)) );
+            	exit(EXIT_FAILURE);
+			}
 		}
     }
     
@@ -217,7 +192,6 @@ int main(void){
 	
     csv_fini(&p, cb1, cb2, NULL);
     csv_fini(&p2, cb3, NULL, NULL);
-    // fclose(fp);
     csv_free(&p);
     csv_free(&p2);
     
