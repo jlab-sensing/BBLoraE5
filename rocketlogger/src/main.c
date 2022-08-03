@@ -135,15 +135,15 @@ void cb3 (void *s, size_t len, void *data){
 int main(void){
 	printf("\nProgram compiled on %s at %s\n\n", __DATE__, __TIME__);
 
-	// if (AT_Init()){
-	// 	printf("Error initializing module\n");
-	// 	exit(EXIT_FAILURE);
-	// }
+	if (AT_Init()){
+		printf("Error initializing module\n");
+		exit(EXIT_FAILURE);
+	}
 	
-	// //doesn't work inside of at_init for some reason
-	// if (AT_SetDataRate(UART2, 2) == -1){
-	// 	printf("Error setting datarate.\n");
-	// }
+	//doesn't work inside of at_init for some reason
+	if (AT_SetDataRate(UART2, 2) == -1){
+		printf("Error setting datarate.\n");
+	}
 	
 	//update socket with correct name for implementation
 	int t_server = ipc_server("/tmp/terosstream.socket");
