@@ -211,8 +211,9 @@ int main(void){
 	sprintf(trx, "%i,%i,%i,%i,%i,%f,%f,%i", ts.timestamp, rl.rl_data[0], \
 		rl.rl_data[2], rl.rl_data[3], rl.rl_data[5],ts.moisture, ts.temp, ts.rho);
     	
-    printf("%s", trx);
-    // AT_SendString(UART2, trx);
+    // printf("%s", trx);
+    // char *tstring = "1615346218,-1251049,689212,25790567,32135,2646.57,19.8,219";
+    AT_SendString(UART2, trx);
 	
     csv_fini(&p, cb1, cb2, NULL);
     csv_fini(&p2, cb3, NULL, NULL);
