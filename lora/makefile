@@ -3,8 +3,8 @@ CC = gcc
 #LDIR = /usr/lib
 
 #/usr/src /usr/local/src
-SRC_DIR := /usr/local/BBLoraE5/rocketlogger/src
-OBJ_DIR := /usr/local/BBLoraE5/rocketlogger/lib
+SRC_DIR := /usr/local/firmware/lora/src
+OBJ_DIR := /usr/local/firmware/lora/lib
 BIN_DIR := .
 
 EXE := $(BIN_DIR)/lora #/usr/local/BBLoraE5/bin/lora 
