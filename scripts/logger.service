@@ -1,0 +1,10 @@
+[Unit]
+Description=MFC Logging Utility
+
+[Service]
+Type=simple
+ExecStart=/home/rocketlogger/.bin/logger.sh %i
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
