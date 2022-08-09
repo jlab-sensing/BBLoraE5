@@ -1,7 +1,6 @@
 CC = gcc
 #IDIR = /usr/include /usr/local/include
 #LDIR = /usr/lib
-s
 
 #/usr/src /usr/local/src
 SRC_DIR := /usr/local/BBLoraE5/rocketlogger/src
