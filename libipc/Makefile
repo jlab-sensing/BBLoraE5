@@ -41,6 +41,13 @@ build/%.test.run: build/%.test.out
 build/%.test.out: build/%.test.o
 	$(CC) $(LDFLAGS) $< $(LOADLIBES) $(LDLIBS) -o $@
 
-.PHONY: clean
+.PHONY: install clean
+
+install: build/libipc.so
+	mv $< /usr/lib/libipc.so
+
+uninstall:
+	rm /usr/lib/libipc.so
+
 clean:
 	rm -rf build/*
