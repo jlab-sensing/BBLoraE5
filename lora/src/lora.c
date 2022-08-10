@@ -1,4 +1,5 @@
 #include "lora.h"
+
 #include <string.h>
 
 #define AT_TEST_HARNESS
