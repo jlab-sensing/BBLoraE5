@@ -3,6 +3,8 @@ CPPFLAGS = -I./include -I./external/ctest
 LDFLAGS = -L./build
 LDLIBS = -lipc
 
+PUB_HEADERS := ipc.h
+
 OBJS := ipc.o generic.o client.o server.o
 TESTS := ipc.test
 EXAMPLES := client server
@@ -43,11 +45,13 @@ build/%.test.out: build/%.test.o
 
 .PHONY: install clean
 
-install: build/libipc.so
-	mv $< /usr/lib/libipc.so
+install: all
+	cp build/libipc.so /usr/lib/libipc.so
+	cp include/$(PUB_HEADERS) /usr/include/
 
 uninstall:
 	rm /usr/lib/libipc.so
+	rm /usr/include/$(PUB_HEADERS)
 
 clean:
 	rm -rf build/*
