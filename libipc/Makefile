@@ -13,13 +13,16 @@ TESTS := $(addprefix build/,$(TESTS))
 EXAMPLES := $(addprefix build/,$(EXAMPLES))
 
 .PHONY: all test examples
-all: build/libipc.a
+all: build/libipc.a build/libipc.so
 test: build/libipc.a $(addsuffix .run,$(TESTS))
 examples: build/libipc.a $(EXAMPLES)
 
 # Marks .out as secondary
 # aka prevents deletion due to intermediatry files
 .SECONDARY: $(addsuffix .out,$(TESTS))
+
+build/libipc.so: $(OBJS)
+	$(CC) -shared -Wl,-soname,$@ -o $@ $^
 
 # main library
 build/libipc.a: $(OBJS)
