@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <error.h>
+#include <errno.h>
+
 #include "lora.h"
-#include "csv.h"
 #include "ipc.h"
 
 #define NUM_RL_FIELDS 6
@@ -149,20 +151,24 @@ int main(void){
 	if (AT_SetDataRate(UART2, 2) == -1){
 		printf("Error setting datarate.\n");
 	}
-	
-	//update socket with correct name for implementation
-	int t_server = ipc_server("/tmp/terosstream.socket");
-	int cfd = ipc_server_accept(t_server);
-	
-	int rl_server = ipc_server("/tmp/rlstream.socket");
+
+	// Create teros socket
+	int t_server = ipc_server("/tmp/teros.socket");
+	if (t_server < 0)
+		error(EXIT_FAILURE, errno, "Could not create teros socket");
+
+	// Create rl socket
+	int rl_server = ipc_server("/tmp/rl.socket");
+	if (rl_server < 0)
+		error(EXIT_FAILURE, errno, "Could not create rl socket");
+
+	// Create client file descriptors
+	int cfd = ipc_server_accept(t_server);	
 	int sfd = ipc_server_accept(rl_server);
 
 	int num_read;
 	size_t bytes_read=BUF_LEN;
 
-    struct csv_parser p;
-	struct csv_parser p2;
-    
 	struct rl_samples rl = {0};
 	struct tsamples ts = {0};
 	
@@ -170,55 +176,25 @@ int main(void){
 	char trx[MAX_PAYLOAD_LENGTH] = {0};
 
 
-    if (csv_init(&p, 0) != 0){
-        printf("csv init fail\n");
-        exit(EXIT_FAILURE);
-    } 
-    if (csv_init(&p2, 0) != 0){
-        printf("csv2 init fail\n");
-        exit(EXIT_FAILURE);
-    } 
-	
-
-    csv_set_opts(&p, CSV_APPEND_NULL);
-    csv_set_opts(&p2, CSV_APPEND_NULL);
-
 	//Get and process rocketlogger data
-    PARSE_PREP;
-    // while((bytes_read=fread(&buf, 1, 1024, fp)) > 0){//was while
-    // while (num_samples <= NUM_TSAMPLES) {
-    	if ((num_read=ipc_read(sfd, buf, BUF_LEN)) > 0) {
-    		if (csv_parse(&p, buf, num_read, cb1, cb2, &rl) != num_read) {
-            	fprintf(stderr, "Error while parsing file: %s\n",
-            	csv_strerror(csv_error(&p)) );
-            	exit(EXIT_FAILURE);
-        	}
-		// }
-    }
+	PARSE_PREP;
+	// while((bytes_read=fread(&buf, 1, 1024, fp)) > 0){//was while
+	// while (num_samples <= NUM_TSAMPLES) {
+	if ((num_read=ipc_read(sfd, buf, BUF_LEN)) > 0) {
+	}
 
-    //Get and process teros data
-    PARSE_PREP;
-    // while (num_samples <= NUM_TSAMPLES) {
-    	if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0) {
-			if (csv_parse(&p2, buf, num_read, cb3, cb2, &ts) != num_read) {
-				fprintf(stderr, "Error while parsing file: %s\n",
-            	csv_strerror(csv_error(&p2)) );
-            	exit(EXIT_FAILURE);
-			}
-		// }
-    }
-    
-	sprintf(trx, "%i,%i,%i,%i,%i,%f,%f,%i", ts.timestamp, rl.rl_data[0], \
-		rl.rl_data[2], rl.rl_data[3], rl.rl_data[5],ts.moisture, ts.temp, ts.rho);
-    	
-    // printf("%s", trx);
-    // char *tstring = "1615346218,-1251049,689212,25790567,32135,2646.57,19.8,219";
-    AT_SendString(UART2, trx);
+	//Get and process teros data
+	PARSE_PREP;
+	// while (num_samples <= NUM_TSAMPLES) {
+	if ((num_read=ipc_read(cfd, buf, BUF_LEN)) > 0) {
+	}
 	
-    csv_fini(&p, cb1, cb2, NULL);
-    csv_fini(&p2, cb3, NULL, NULL);
-    csv_free(&p);
-    csv_free(&p2);
-    
-    exit(EXIT_SUCCESS);
+	sprintf(trx, "%i,%i,%i,%i,%i,%f,%f,%i", ts.timestamp, rl.rl_data[0], \
+	rl.rl_data[2], rl.rl_data[3], rl.rl_data[5],ts.moisture, ts.temp, ts.rho);
+		
+	// printf("%s", trx);
+	// char *tstring = "1615346218,-1251049,689212,25790567,32135,2646.57,19.8,219";
+	AT_SendString(UART2, trx);
+
+	return 0;
 }
