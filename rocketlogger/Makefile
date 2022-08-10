@@ -1,6 +1,4 @@
 CFLAGS = -Wall -Wextra -g
-#CPPFLAGS = -I./external/libipc/include
-#LDFLAGS = -L/usr/lib
 LDLIBS = -lipc
 
 OBJS := teroslogger.o
