@@ -24,7 +24,7 @@ examples: build/libipc.a $(EXAMPLES)
 .SECONDARY: $(addsuffix .out,$(TESTS))
 
 build/libipc.so: $(OBJS)
-	$(CC) -shared -Wl,-soname,$@ -o $@ $^
+	$(CC) -shared -Wl,-soname,libipc.so -o $@ $^
 
 # main library
 build/libipc.a: $(OBJS)
