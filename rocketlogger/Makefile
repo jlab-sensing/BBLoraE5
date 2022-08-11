@@ -6,14 +6,8 @@ OBJS := teroslogger.o
 # Add build prefix
 OBJS := $(addprefix build/,$(OBJS))
 
-.PHONY: all install uninstall
+.PHONY: all 
 all: build/teroslogger
-
-install: all
-	cp build/teroslogger /usr/bin
-
-uninstall:
-	rm -f /usr/bin/teroslogger
 
 build/teroslogger: $(OBJS)
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -21,6 +15,13 @@ build/teroslogger: $(OBJS)
 build/%.o: src/%.c
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
-.PHONY: clean
+.PHONY: clean install uninstall
+
+install: all
+	install -m 777 build/teroslogger /usr/bin
+
+uninstall:
+	rm -f /usr/bin/teroslogger
+
 clean:
 	rm -rf build/*

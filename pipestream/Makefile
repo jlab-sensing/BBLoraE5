@@ -15,6 +15,10 @@ build/pipestream: build/%: build/%.o
 build/%.o: src/%.c
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $^ -o $@
 
-.PHONY: clean
+.PHONY: install clean
+
+install: all
+	install -m 777 build/pipestream /usr/bin
+
 clean:
 	rm -rf build/*

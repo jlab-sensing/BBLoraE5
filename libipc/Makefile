@@ -46,8 +46,8 @@ build/%.test.out: build/%.test.o
 .PHONY: install clean
 
 install: all
-	cp build/libipc.so /usr/lib/libipc.so
-	cp include/$(PUB_HEADERS) /usr/include/
+	install -m 777 build/libipc.so /usr/lib
+	install -m 777 include/$(PUB_HEADERS) /usr/include
 
 uninstall:
 	rm /usr/lib/libipc.so
