@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -fPIC
 CPPFLAGS = -I./include -I./external/ctest
 LDFLAGS = -L./build
 LDLIBS = -lipc

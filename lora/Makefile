@@ -20,7 +20,7 @@ $(BIN_DIR)/%.o: $(SRC_DIR)/%.c
 .PHONY: install clean
 
 install: all
-	install -m 777 bulid/lora /usr/bin
+	install -m 777 build/lora /usr/bin
 
 clean:
 	$(RM) -rv $(BIN_DIR)/*
