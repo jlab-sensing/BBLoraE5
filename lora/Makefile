@@ -1,17 +1,17 @@
 SRC_DIR := src
 BIN_DIR := build
 
-EXE := $(BIN_DIR)/lora
-OBJ := lora.o main.o
+EXE := lora
+OBJ := lora.o main.o libcsv.o uart.o
 OBJ := $(addprefix $(BIN_DIR)/,$(OBJ))
 
 CPPFLAGS := -Isrc -Wall -Wextra -g
-LDLIBS := -lm -lrobotcontrol
+LDLIBS := -lm -lipc
 
 .PHONY: all
-all: $(EXE)
+all: $(BIN_DIR)/$(EXE)
 
-$(EXE): $(OBJ)
+$(BIN_DIR)/$(EXE): $(OBJ)
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.c
@@ -23,4 +23,4 @@ install: all
 	install -m 777 lora /usr/bin
 
 clean:
-	$(RM) -rv $(BIN_DIR)
+	$(RM) -rv $(BIN_DIR)/*
