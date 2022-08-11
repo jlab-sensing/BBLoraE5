@@ -1,6 +1,7 @@
 #include "lora.h"
 
 #include <string.h>
+#include <stdint.h>
 
 #define AT_TEST_HARNESS
 
@@ -37,7 +38,7 @@ int AT_SerialReceive(int bus, uint8_t buf[]){
 	VERIFY_BUS(bus);
 	int res = 0;
 	
-	if (rc_uart_bytes_available > 0){
+	if (rc_uart_bytes_available(bus) > 0){
 		res = rc_uart_read_line(bus, buf, MAX_PAYLOAD_LENGTH);
 		//unknown response length, so disregard length check in macro
 		VERIFY_RXTX(RX, res, res); 
@@ -248,7 +249,9 @@ int AT_Init(void){
 		printf("Error setting ADR function.\n");
 	}
 	
-    // rc_uart_write(UART2, (uint8_t*)"AT+DR=dr2\n", strlen("AT+DR=2\n"));
-
+	if (AT_SetDataRate(UART2, 2) == -1){
+		printf("Error setting datarate.\n");
+	}
+	
 	return SUCCESS;
 }
