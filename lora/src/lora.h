@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <rc/uart.h>
-#include <rc/time.h>
+#include <stdint.h>
+
+#include "uart.h"
 
 #define UART2 2 //uart2
 #define BAUD96 9600
