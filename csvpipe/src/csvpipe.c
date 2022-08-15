@@ -18,6 +18,7 @@
 
 static char pstring[BUF_LEN];
 static int col;
+static int client;
 
 void cb1(void *s, size_t len,  void *data){
 	strcat(pstring, (char*)(s));
@@ -28,47 +29,50 @@ void cb1(void *s, size_t len,  void *data){
 void cb2(int c, void *data){
 	col = 0;
 	
-	//just for testing purposes
-	printf("%s\n", pstring);
-	
+	strncat(pstring, "\n", 1);
+	int num_write = ipc_write(client, pstring, strlen(pstring));
+		if (num_write < 0) {
+			error(0, errno, "Could not write to socket");
+		}
+		
 	int i = 0;
 	while (pstring[i]){
 		pstring[i] = '\0';
 		i++;
 	}
-	pstring[0] = '\n';
+	// pstring[0] = '\n';
 }
+
+
 
 int main(int argc, char * argv[]) {
 	printf("pipstream, compiled on %s %s\n", __DATE__, __TIME__);
 
-	// if (argc != 2) {
-	// 	error(EXIT_FAILURE, 0, "Missing socket file");
-	// }
+	if (argc != 3) {
+		error(EXIT_FAILURE, 0, "Missing socket file");
+	}
 
-	// char * socket_file = argv[1];
-	printf("1\n");
+	char * socket_file = argv[1];
+	
+	// Connect to server socket
+
 	struct csv_parser p;
 	if (csv_init(&p, 0) != 0) exit(EXIT_FAILURE);
 	csv_set_opts(&p, CSV_APPEND_NULL);
-	printf("2\n");
-	
-	// FILE *fp = fopen(argv[2], "r");
-	FILE *fp = fopen("/usr/local/Rocketlogger-Firmware/csvpipe/rlsamples.csv", "r");
+
+	FILE *fp = fopen(argv[2], "r");
 	if (!fp) exit(EXIT_FAILURE);
 
 	size_t bytes_read;
-	// int client;
-	printf("3\n");
+	
 	for (;;)
 	{
-		// Connect to server socket
-		// client = ipc_client(socket_file);
-		// if (client < 0) {
-		// 	error(0, errno, "Could not open client socket");
-		// 	continue;
-		// }
-
+		client = ipc_client(socket_file);
+		if (client < 0) {
+			error(0, errno, "Could not open client socket");
+			continue;
+		} else printf("success\n");
+		
 		// Read buffer
 		char buf[BUF_LEN];
 	
@@ -82,20 +86,14 @@ int main(int argc, char * argv[]) {
 					csv_strerror(csv_error(&p)));
 					exit(EXIT_FAILURE);
 				}
-			}
+			}	
 			
-			// Write to the socket
-			// int num_write = ipc_write(client, buf, strlen(buf));
-			// if (num_write < 0) {
-			// 	error(0, errno, "Could not write to socket");
-			// 	break;
-			// }
 		}
 
-		// ipc_close(client);
+		ipc_close(client);
 	}
 
-	// ipc_close(client);
+	ipc_close(client);
 
 	return 0;
 }

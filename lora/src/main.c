@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
 #include "lora.h"
 #include "csv.h"
 #include "ipc.h"
@@ -66,6 +67,7 @@ typedef struct tsamples{
 
 static uint8_t col = 0;
 static int num_samples = 1;
+static uint8_t rflag = 0;
 
 /*******************************************************************************
  * 
@@ -77,14 +79,15 @@ void cb1 (void *s, size_t len, void *data){
 	int chr = 0;
 	//rocketlogger has two fields
 	if (col!=TIMESTAMP_f) chr = strtol((char*)s, NULL, 10);
-
-	//quick n easy, change later
-	if (col == I1LV_f){ 
-		((rl_samples*)data)->I1L_Valid = chr;
-	} else if (col == I2LV_f){ 
-		((rl_samples*)data)->I2L_Valid = chr;
-	} 
+	// printf("char: %i ", chr);
 	
+	//quick n easy, change later
+	// if (col == I1LV_f){ 
+	// 	((rl_samples*)data)->I1L_Valid = chr;
+	// } else if (col == I2LV_f){ 
+	// 	((rl_samples*)data)->I2L_Valid = chr;
+	// } 
+
 	if (col == V1_f){ 
 		RL_IT_AVG(0, chr, num_samples);
 	} else if (col == I1H_f){ 
@@ -98,12 +101,19 @@ void cb1 (void *s, size_t len, void *data){
 	} else if (col == I2L_f){
 		RL_IT_AVG(5, chr, num_samples);
 	} 
-	
+
 	col++;
+	/*
+	Current code struggles to keep sockets open for an appropriate amount of 
+	/time, so we use this flag (rflag) to keep it open until a minimum of ONE 
+	field has been read
+	*/
+	if (!rflag) rflag = 1;
 }
 void cb2 (int c, void *data){
 	col = 0;
 	num_samples++;
+	printf("line %i\n", num_samples);
 }
 
 void cb3 (void *s, size_t len, void *data){
@@ -140,11 +150,13 @@ int main(void){
 	}
 	
 	//update socket with correct name for implementation
-	int t_server = ipc_server("/tmp/terosstream.socket");
-	int cfd = ipc_server_accept(t_server);
-	
+	// int t_server = ipc_server("/tmp/terosstream.socket");
+	// int cfd = ipc_server_accept(t_server);
+
 	int rl_server = ipc_server("/tmp/rlstream.socket");
-	int sfd = ipc_server_accept(rl_server);
+	
+	printf("connected\n");
+
 
 	// int num_read;
 	int bytes_read;
@@ -173,20 +185,33 @@ int main(void){
     csv_set_opts(&p2, CSV_APPEND_NULL);
 
 	//Get and process rocketlogger data
-	while(1){
-		
-    PARSE_PREP;
-    while (num_samples <= NUM_RL_SAMPLES) {
-    	if ((bytes_read=ipc_read(sfd, buf, BUF_LEN)) > 0) {
-    		if (csv_parse(&p, buf, bytes_read, cb1, cb2, &rl) != bytes_read) {
-            	fprintf(stderr, "Error while parsing file: %s\n",
-            	csv_strerror(csv_error(&p)) );
-            	exit(EXIT_FAILURE);
-        	}
-		}
-    }
 
+    PARSE_PREP;
+	int sfd = 0;
+    while(1){
+    	if (!sfd){
+    		sfd = ipc_server_accept(rl_server);
+    		rflag = 0;
+    	} else {
+    		while ((bytes_read=ipc_read(sfd, buf, BUF_LEN)) > 0) {
+    			if (csv_parse(&p, buf, bytes_read, cb1, cb2, &rl) != bytes_read) {
+	    			fprintf(stderr, "Error while parsing file: %s\n",
+          			csv_strerror(csv_error(&p)) );
+           			exit(EXIT_FAILURE);
+       			}
+        		printf("String: %i,%i,%i,%i\n",rl.rl_data[0], rl.rl_data[2], rl.rl_data[3], rl.rl_data[5]);
+    		}
+    		if (rflag){
+    			ipc_close(sfd);
+    			sfd = 0;
+    		}
+    		
+    	}
+		
+    }
+/*
     //Get and process teros data
+    
     PARSE_PREP;
     while (num_samples <= NUM_T_SAMPLES) {
     	if ((bytes_read=ipc_read(cfd, buf, BUF_LEN)) > 0) {
@@ -203,7 +228,7 @@ int main(void){
     	
     AT_SendString(UART2, trx);
     }
-	
+	*/
     csv_fini(&p, cb1, cb2, NULL);
     csv_fini(&p2, cb3, NULL, NULL);
     csv_free(&p);
