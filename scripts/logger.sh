@@ -16,7 +16,7 @@ lora &
 
 while true; do
 	TIMESTAMP=`date +"%Y-%m-%d_%T"`
-	RL_FILENAME="$(TIMESTAMP)_rl.csv"
-	rocketlogger sample $NUM_SAMPLES -r 1 -format csv -f $(RL_FILENAME) -ch 0,1,2,3,4,5 -d 0 -w 0
+	RL_FILENAME="${TIMESTAMP}_rl.csv"
+	rocketlogger sample $NUM_SAMPLES -r 1 -format csv -f $RL_FILENAME -ch 0,1,2,3,4,5 -d 0 -w 0
 	csvsocket $RL_SOCKET
 done
