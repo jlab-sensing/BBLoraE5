@@ -1,15 +1,15 @@
 CFLAGS = -Wall -Wextra -g
 LDLIBS = -lipc
 
-OBJS := csvpipe.o libcsv.o
+OBJS := csvstream.o libcsv.o
 
 # Add build prefix
 OBJS := $(addprefix build/,$(OBJS))
 
 .PHONY: all test
-all: build/csvpipe.o build/libcsv.o
+all: build/csvstream.o build/libcsv.o
 
-build/csvpipe: build/%: build/%.o
+build/csvstream: build/%: build/%.o
 	$(CC) $(LDFLAGS) $< $(LOADLIBES) $(LDLIBS) -o $@
 
 build/%.o: src/%.c
@@ -18,7 +18,7 @@ build/%.o: src/%.c
 .PHONY: install clean
 
 install: all
-	install -m 777 build/csvpipe /usr/bin
+	install -m 777 build/csvstream /usr/bin
 
 clean:
 	rm -rf build/*
