@@ -230,8 +230,9 @@ int AT_SendString(int bus, char *str){
 
 int AT_Init(void){
 	
-	system("config-pin P9.21 uart\n");
-	system("config-pin P9.22 uart\n");
+	//config-pin only works on certain debian versions. need to enable uart w/o
+	// system("config-pin P9.21 uart\n");
+	// system("config-pin P9.22 uart\n");
 	system("stty -F /dev/ttyS2 9600 cs8 -cstopb -parenb\n");
 	
 	if (rc_uart_init(UART2, 9600, 1, CAN_EN, SB, PAR) == -1){
