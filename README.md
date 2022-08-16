@@ -13,53 +13,34 @@ LoRaWAN
 
 Specifics on LoRaWAN and how it works can be found here[link].
 
-##LoRaWAN Module
+### LoRaWAN Module
 
-We use the Grove Wio-E5 LoRa[link] module, although any can be used with proper setup. Ensure that whichever transceiver being used is set to the 
-proper data rate -- a specific RF band must be used depending on the region (For the US, 902MHz-928Mhz).
-![Frequency bands for various regions]()\\comment
+We use the Grove Wio-E5 LoRa[link] module, although any can be used with proper setup. Ensure that whichever transceiver being used is set to the proper data rate -- a specific RF band must be used depending on the region (For the US, 902MHz-928Mhz).
 
-##LoRaWAN Gateway
+### LoRaWAN Gateway
 
-The gateway you choose is dependent on a couple things, particularly connectivity options, OS, and region support. We use the Sentrius RG191, just
-ensure that whichever gateway you choose supports your frequency spectrum.
+The gateway you choose is dependent on a couple things, particularly connectivity options, OS, and region support. We use the Sentrius RG191, just ensure that whichever gateway you use supports your frequency spectrum.
 
-##Network/Application Server
+### Network/Application Server
 
-First off, I recommend reading about the difference between [network](https://www.thethingsindustries.com/docs/reference/components/network-server/)
-and [application](https://www.thethingsindustries.com/docs/reference/components/application-server/) servers.
+First off, I recommend reading about the difference between [network](https://www.thethingsindustries.com/docs/reference/components/network-server/) and [application](https://www.thethingsindustries.com/docs/reference/components/application-server/) servers.
 
-How you decide to implement your network/application server may depend on which gateway you implement (some gateways have native support for services
-such as TTN). I recommend either ChirpStack or TTN. TTN is better for initial proof of concept -- it supports many different LoRaWAN/gateway models,
-and is as simple as signing up for an account in your region. It does limit the amount of data you can send (with the free version), however. ChirpStack
-offers more integrations/customization, although is a bit more difficult to set up.
+How you decide to implement your network/application server may depend on which gateway you implement (some gateways have native support for services such as TTN). I recommend either ChirpStack or TTN. TTN is better for initial proof of concept, but ChirpStack offers more customization/integrations, and is better for actual deployment.
 
-##System Assembly
+### System Assembly
 
-I'll give specifics for our system, although the process should be about the same for any setup. The gateway should be configured first:
+First, configure the gateway. You'll have to either connect the gateway directly to ethernet or to your computer to begin. For the RG191, you can access the gateway through https://rg1xx2**9378B**.local, where the text in bold is the last six digits of the ethernet MAC ID. The gateway should come with a user manual with further details regarding setup.
 
-You'll have to either connect the gateway directly to ethernet or to your computer to begin. For the RG191, you can access the gateway through
-https://rg1xx2**9378B**.local, where the text in bold is the last six digits of the ethernet MAC ID. 
-The gateway should come with a user manual with further details ([RG191]()).
-[Fig 2: Wi-Fi configuration page for the RG191]()
+With the gateway connected to the internet, we can now set up LoRaWAN capabilities. On the gateway interface, there's a LoRa page where you can configure relevant settings. Specifics will depend on how you decide to implement the network and application servers. Some gateways provide presets which make configuration easy (the RG191, for example, offers a TTN preset).
 
-With the gateway connected to the internet, we can now set up LoRaWAN capabilities. Specifics will depend on how you decide to implement the network
-and application servers. Some gateways provide presets which make configuration easy.
-[Fig 3: RG191 preset options]()
+Using the TTN preset makes setup quick and easy, but less flexible. I would recommend setting it up using either the [Semtech UDP forwarder](https://www.thethingsindustries.com/docs/gateways/udp/) or [LoRa Basics Station](https://www.thethingsindustries.com/docs/gateways/lora-basics-station/). You'll find these options under the "Forwarder" tab. There's an option to set your network server address. If you use TTN, they have dedicated servers for each region which can be found in their documentation (it should be set by default if you use their preset). For most other options though, you'll have to set up your own server to use.
 
-The TTN preset shown above can be somewhat finnicky (or maybe I'm just inept), so I would recommend setting it up using either the 
-[Semtech UDP forwarder](https://www.thethingsindustries.com/docs/gateways/udp/) or 
-[LoRa Basics Station](https://www.thethingsindustries.com/docs/gateways/lora-basics-station/). You'll see in Figure 4 there's an 
-option to set your network server address. If you use TTN, they have dedicated servers for each region which can be found in their documentation. 
-For most other options though, you'll have to set up your own server to use.
-[Fig 4: RG191 Forwarder options]()
-
-The gateway interface should tell you whether or not it's connected (see the left hand side of Figures 3-5). You should't have to mess with much beyond what's described in the provided links, although I found that the Semtech UDP forwarder might not work if you
+You should't have to change much beyond what's described in the provided links, although I found that the Semtech UDP forwarder might not work if you
 don't ensure that each of the "Forward CRC ******" options listed under aren't checked "Advanced" aren't checked (this is specifically for the RG191, I
 can't speak for other gateways).
-[Fig 5: You shouldn't have to change any of the values shown, just make sure each box is ticked.]()
 
 If you're using TTN, setting up your application server is fairly straightforward, as they provide most of the info. ChirpStack isn't particularly
 complicated either, but is slightly more confusing. Assuming you have your network server up and running, you can connect it to ChirpStack under the
 Network-Servers tab by providing a name and the server.
-[Fig 7: ChirpStack Network-Servers tab]()
+
+In order to read data from the application server, you have to register your end device with that application. This can be done either Over-the-Air (OTAA), or by personalization (ABP). We use ABP, in which you'll need the LoRaWAN MAC version, along with the device EUI. To read more about either, check out [the TTN website](https://www.thethingsindustries.com/docs/devices/abp-vs-otaa/).
