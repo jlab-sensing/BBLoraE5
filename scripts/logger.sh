@@ -11,6 +11,11 @@ NUM_SAMPLES=10
 # Path to log temperary data to
 DATA_PATH=/srv/rl
 
+# Create data folder if dne
+if [[ ! -d $DATA_PATH ]]; then
+	mkdir -p $DATA_PATH
+fi
+
 teroslogger -q -s $TEROS_SOCKET /dev/ttyACM0 &
 lora $TEROS_SOCKET $RL_SOCKET &
 
