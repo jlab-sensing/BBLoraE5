@@ -7,10 +7,12 @@ OBJS := csvstream.o libcsv.o
 OBJS := $(addprefix build/,$(OBJS))
 
 .PHONY: all test
-all: build/csvstream.o build/libcsv.o
+all: build/csvstream
 
-build/csvstream: build/%: build/%.o
-	$(CC) $(LDFLAGS) $< $(LOADLIBES) $(LDLIBS) -o $@
+build/csvstream: $(OBJS)
+
+build/%: build/%.o
+	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 build/%.o: src/%.c
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $^ -o $@
