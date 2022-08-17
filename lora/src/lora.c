@@ -38,13 +38,9 @@ int AT_SerialReceive(int bus, char * buf){
 	VERIFY_BUS(bus);
 	int res = 0;
 	
-	if (rc_uart_bytes_available(bus) > 0){
-		res = rc_uart_read_line(bus, buf, MAX_PAYLOAD_LENGTH);
-		//unknown response length, so disregard length check in macro
-		VERIFY_RXTX(RX, res, res); 
-	} else{
-		return ERROR;
-	}
+	res = rc_uart_read_line(bus, buf, MAX_PAYLOAD_LENGTH);
+	//unknown response length, so disregard length check in macro
+	VERIFY_RXTX(RX, res, res); 
 	
 	return SUCCESS;
 }
