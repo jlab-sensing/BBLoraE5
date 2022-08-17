@@ -86,8 +86,9 @@ int main(int argc, char * argv[]) {
 					csv_strerror(csv_error(&p)));
 					exit(EXIT_FAILURE);
 				}
-			}	
-			
+			}
+			ipc_close(client);
+			return 0;
 		}
 
 		ipc_close(client);
