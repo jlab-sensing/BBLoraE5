@@ -164,7 +164,7 @@ void cb3 (int c, void *data){
 
 
 int main(int argc, char *argv[]){
-	printf("\nProgram compiled on %s at %s\n\n", __DATE__, __TIME__);
+	printf("\n%s compiled on %s at %s\n", argv[0], __DATE__, __TIME__);
 	
 	//argv[1] = teros socket name
 	//argv[2] = rocketlogger socket name
