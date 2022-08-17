@@ -28,13 +28,13 @@ int AT_SerialTransmit(int bus, char *data){
 		return ERROR;
 	}
 	//write data to uart bus
-	res = rc_uart_write(bus, (uint8_t*)data, len);
+	res = rc_uart_write(bus, data, len);
 	VERIFY_RXTX(TX, res , len);
 	
 	return SUCCESS;
 }
 
-int AT_SerialReceive(int bus, uint8_t buf[]){
+int AT_SerialReceive(int bus, char * buf){
 	VERIFY_BUS(bus);
 	int res = 0;
 	
@@ -52,7 +52,7 @@ int AT_SerialReceive(int bus, uint8_t buf[]){
 int AT_TestConnection(int bus){
 	VERIFY_BUS(bus);
 	int i;
-	uint8_t incoming[MAX_PAYLOAD_LENGTH] = {0};
+	char incoming[MAX_PAYLOAD_LENGTH] = {0};
 	
 	//send message "AT" to test connection with e5 module
 	if (AT_SerialTransmit(bus, "AT\n")){return TX_ERROR;}
@@ -75,7 +75,7 @@ int AT_TestConnection(int bus){
 
 int AT_CheckVersion(int bus){
 	VERIFY_BUS(bus);
-	uint8_t incoming[MAX_PAYLOAD_LENGTH] = {0};
+	char incoming[MAX_PAYLOAD_LENGTH] = {0};
 
 	//Retrieve module firmware version
 	if (AT_SerialTransmit(bus, "AT+VER\n")){
@@ -87,7 +87,7 @@ int AT_CheckVersion(int bus){
 	}
 	
 	//tbd: instead of printing here, maybe place it in an argument buffer?
-	printf("Firmware version: %s\n", (char*)&incoming);
+	//printf("Firmware version: %s\n", incoming);
 	
 	//Retrieve LoRaWAN version
 	if (AT_SerialTransmit(bus, "AT+LW=VER\n")) {
@@ -105,7 +105,7 @@ int AT_CheckVersion(int bus){
 int AT_CheckID(int bus){
 	VERIFY_BUS(bus);
 	int i;
-	uint8_t incoming[MAX_PAYLOAD_LENGTH];
+	char incoming[MAX_PAYLOAD_LENGTH];
 	
 	if (AT_SerialTransmit(bus, "AT+ID\n")) {
 		return TX_ERROR;
@@ -125,7 +125,7 @@ int AT_CheckID(int bus){
 
 int AT_CheckDataRate(int bus){
 	VERIFY_BUS(bus);
-	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
+	char buf[MAX_PAYLOAD_LENGTH] = {0};
 	//request device to send data rate
 	if (AT_SerialTransmit(bus, "AT+DR\n")){return TX_ERROR;}
 
@@ -178,7 +178,7 @@ int AT_SetDataRate(int bus, int rate){
 	if ((rate<0) || (rate > 15)){return ERROR;}
 	
 	char data[MAX_PAYLOAD_LENGTH];
-	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
+	char buf[MAX_PAYLOAD_LENGTH] = {0};
 	snprintf(data, 11, "AT+DR=dr%i\n", rate);
 	
 	if (AT_SerialTransmit(bus, data)){
@@ -239,7 +239,7 @@ int AT_Init(void){
 		printf("Error in UART2 initialization.\n");
 		// return ERROR;
 	}
-	
+
 	if (AT_TestConnection(UART2)){
 		printf("Beaglebone not connected to E5 module.\n");
 		// return ERROR;

@@ -31,7 +31,7 @@ enum error_codes {
 
 int AT_Init(void);
 int AT_SerialTransmit(int bus, char *data);
-int AT_SerialReceive(int bus, uint8_t buf[]);
+int AT_SerialReceive(int bus, char * buf);
 int AT_TestConnection(int bus);
 int AT_CheckVersion(int bus);
 int AT_CheckID(int bus);
