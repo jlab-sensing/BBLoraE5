@@ -58,7 +58,7 @@ int AT_TestConnection(int bus){
 	if (AT_SerialTransmit(bus, "AT\n")){return TX_ERROR;}
 	
 	//e-5 module should return "+AT: OK"
-	char *resp = "+AT: OK"; //expected response
+	char resp[] = "+AT: OK"; //expected response
 	int len = strlen(resp);
 	if (AT_SerialReceive(bus, incoming)){return RX_ERROR;}
 		
@@ -233,7 +233,7 @@ int AT_Init(void){
 	//config-pin only works on certain debian versions. need to enable uart w/o
 	// system("config-pin P9.21 uart\n");
 	// system("config-pin P9.22 uart\n");
-	system("stty -F /dev/ttyS2 9600 cs8 -cstopb -parenb\n");
+	system("stty -F /dev/ttyO2 9600 cs8 -cstopb -parenb\n");
 	
 	if (rc_uart_init(UART2, 9600, 1, CAN_EN, SB, PAR) == -1){
 		printf("Error in UART2 initialization.\n");
