@@ -16,8 +16,8 @@ if [[ ! -d $DATA_PATH ]]; then
 	mkdir -p $DATA_PATH
 fi
 
-teroslogger -q -s $TEROS_SOCKET /dev/ttyACM0 &
 lora $TEROS_SOCKET $RL_SOCKET &
+teroslogger -q -s $TEROS_SOCKET /dev/ttyACM0 &
 
 while true; do
 	TIMESTAMP=`date +"%Y-%m-%d_%T"`
