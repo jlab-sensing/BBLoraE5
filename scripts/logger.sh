@@ -23,5 +23,5 @@ while true; do
 	TIMESTAMP=`date +"%Y-%m-%d_%T"`
 	RL_FILENAME="${DATA_PATH}/${TIMESTAMP}_rl.csv"
 	rocketlogger sample $NUM_SAMPLES -r 1 -format csv -f $RL_FILENAME -ch 0,1,2,3,4,5 -d 0 -w 0
-	csvstream $RL_SOCKET
+	csvstream $RL_SOCKET $RL_FILENAME
 done
