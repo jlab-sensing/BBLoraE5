@@ -89,7 +89,7 @@ static teros_fields t_col = T_TIMESTAMP;
 static void cb1(void *s, size_t len, void *data)
 {
 	int chr = 0;
-	
+
 	static int num_samples = 0;
 
 	chr = strtol((char *)s, NULL, 10);
@@ -121,7 +121,6 @@ static void cb1(void *s, size_t len, void *data)
 	}
 	printf("Col: %i\t Input: %i\n", rl_col, chr);
 	rl_col++;
-
 }
 
 // Callback function 2 -- called at the end of each rocketlogger row
@@ -129,7 +128,6 @@ static void cb2(int c, void *data)
 {
 	num_rl_rows++;
 	rl_col = RL_TIMESTAMP;
-	
 }
 
 // Callback function 3 -- called at the end of individual teros fields
@@ -241,34 +239,38 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			if ((t_bytes_read = ipc_read(t_fd, buf, BUF_LEN)) > 0){
+			if ((t_bytes_read = ipc_read(t_fd, buf, BUF_LEN)) > 0)
+			{
 				if (csv_parse(&p2, buf, t_bytes_read, cb3, cb4, &soil_data) != t_bytes_read)
 				{
 					fprintf(stderr, "Error while parsing file: %s\n",
-						csv_strerror(csv_error(&p2)));
+							csv_strerror(csv_error(&p2)));
 					exit(EXIT_FAILURE);
 				}
 			}
-			
-			if ((rl_bytes_read = ipc_read(rl_fd, buf, BUF_LEN)) > 0){
+
+			if ((rl_bytes_read = ipc_read(rl_fd, buf, BUF_LEN)) > 0)
+			{
 				if (csv_parse(&p, buf, rl_bytes_read, cb1, cb2, &soil_data) != rl_bytes_read)
 				{
 					fprintf(stderr, "Error while parsing file: %s\n",
 							csv_strerror(csv_error(&p)));
 					exit(EXIT_FAILURE);
 				}
-			} else if (errno == EAGAIN){
+			}
+			else if (errno == EAGAIN)
+			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],
 						soil_data.rl_channel_2[VOLTAGE], soil_data.rl_channel_2[CURRENT],
 						soil_data.moisture, soil_data.temp, soil_data.conductivity);
 
 				printf("Payload: %s\n", lora_msg);
-				// AT_SendString(UART2, lora_msg);
+				AT_SendString(UART5, lora_msg);
 
 				ipc_close(rl_fd);
 				rl_fd = 0;
-				
+
 				// clear all averaged fields to obtain new values in next loop
 				soil_data.rl_channel_1[VOLTAGE] = 0;
 				soil_data.rl_channel_1[CURRENT] = 0;
@@ -277,7 +279,7 @@ int main(int argc, char *argv[])
 				soil_data.moisture = 0;
 				soil_data.temp = 0;
 				soil_data.conductivity = 0;
-				
+
 				// reset row and sample count
 				num_t_rows = 0;
 				num_rl_rows = 0;

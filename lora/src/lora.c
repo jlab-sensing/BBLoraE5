@@ -224,29 +224,32 @@ int AT_SendString(int bus, char *str){
 	
 }
 
-int AT_Init(void){
+int AT_Init(int bus){
 	
 	//config-pin only works on certain debian versions. need to enable uart w/o
 	// system("config-pin P9.21 uart\n");
 	// system("config-pin P9.22 uart\n");
-	system("stty -F /dev/ttyO2 9600 cs8 -cstopb -parenb\n");
+	char init_msg[MAX_PAYLOAD_LENGTH] = {0};
+	sprintf(init_msg, "stty -F /dev/ttyO%i 9600 cs8 -cstopb -parenb", bus);
+	system(init_msg);
+	// system("stty -F /dev/ttyO2 9600 cs8 -cstopb -parenb\n");
 	
-	if (rc_uart_init(UART2, 9600, 1, CAN_EN, SB, PAR) == -1){
+	if (rc_uart_init(bus, 9600, 1, CAN_EN, SB, PAR) == -1){
 		printf("Error in UART2 initialization.\n");
 		// return ERROR;
 	}
 
-	if (AT_TestConnection(UART2)){
+	if (AT_TestConnection(bus)){
 		printf("Beaglebone not connected to E5 module.\n");
 		// return ERROR;
 	}
 	//ADR will automatically set data rates, but we want to stick with DR1
 	//Not necessary for initialization, up to user
-	if (AT_SerialTransmit(UART2, "AT+ADR=OFF\n") == -1){
+	if (AT_SerialTransmit(bus, "AT+ADR=OFF\n") == -1){
 		printf("Error setting ADR function.\n");
 	}
 	
-	if (AT_SetDataRate(UART2, 2) == -1){
+	if (AT_SetDataRate(bus, 2) == -1){
 		printf("Error setting datarate.\n");
 	}
 	
