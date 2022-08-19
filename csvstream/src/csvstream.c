@@ -71,7 +71,7 @@ int main(int argc, char * argv[]) {
 		if (client < 0) {
 			error(0, errno, "Could not open client socket");
 			continue;
-		} else printf("success\n");
+		} else printf("Opened RL client\n");
 		
 		// Read buffer
 		char buf[BUF_LEN];

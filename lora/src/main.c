@@ -196,12 +196,16 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
 	}
 
-	// create server and accept connection from teros socket
-	int t_server = ipc_server(argv[1]);
-	int t_fd = ipc_server_accept(t_server);
-
 	// create server for rocketlogger
 	int rl_server = ipc_server(argv[2]);
+	printf("Rocketlogger server created\n");
+
+	// create server and accept connection from teros socket
+	int t_server = ipc_server(argv[1]);
+	printf("Teros server created\n");
+	int t_fd = ipc_server_accept(t_server);
+	printf("Teros client accepted\n");
+
 
 	char buf[BUF_LEN] = {0};
 	char lora_msg[MAX_PAYLOAD_LENGTH] = {0};
@@ -230,12 +234,14 @@ int main(int argc, char *argv[])
 	int rl_fd = 0;
 	int t_bytes_read = 0;
 	int rl_bytes_read = 0;
+	int er = 0;
 
 	while (1)
 	{
-		if (!rl_fd)
+		if (rl_fd > 0)
 		{
 			rl_fd = ipc_server_accept(rl_server);
+			printf("RL client accepted\n");
 		}
 		else
 		{
@@ -271,7 +277,7 @@ int main(int argc, char *argv[])
 				ipc_close(rl_fd);
 				rl_fd = 0;
 
-				// clear all averaged fields to obtain new values in next loop
+				// clear all averaged fields to obtain new val	es in next loop
 				soil_data.rl_channel_1[VOLTAGE] = 0;
 				soil_data.rl_channel_1[CURRENT] = 0;
 				soil_data.rl_channel_2[VOLTAGE] = 0;
