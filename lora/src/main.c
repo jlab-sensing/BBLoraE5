@@ -118,7 +118,6 @@ static void cb1(void *s, size_t len, void *data)
 			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_2[CURRENT], chr, num_samples);
 		}
 	}
-	printf("Col: %i\t Input: %i\n", rl_col, chr);
 	rl_col++;
 }
 
@@ -132,11 +131,10 @@ static void cb2(int c, void *data)
 // Callback function 3 -- called at the end of individual teros fields
 static void cb3(void *s, size_t len, void *data)
 {
-	printf("callback 3\n");
 	int chr = 0;
 
 	chr = strtol((char *)s, NULL, 10);
-
+	printf("Teros data: %i\n", chr);
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
 		if (t_col == T_TIMESTAMP)
@@ -239,6 +237,7 @@ int main(int argc, char *argv[])
 	int rl_fd = 0;
 	int t_bytes_read = 0;
 	int rl_bytes_read = 0;
+	num_samples = 0;
 
 	while (1)
 	{
