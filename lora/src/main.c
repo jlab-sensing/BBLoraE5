@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Missing program argument");
 	}
 
-	if (AT_Init())
+	if (AT_Init(UART5))
 	{
 		error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
 	}

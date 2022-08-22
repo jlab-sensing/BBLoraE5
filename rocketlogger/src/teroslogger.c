@@ -232,6 +232,7 @@ int main(int argc, char** argv){
     }
 
     // Open socket
+	printf("Opening teros socket\n");
     int socket;
     if (socket_file) {
         do { 
