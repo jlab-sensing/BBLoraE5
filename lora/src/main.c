@@ -142,6 +142,7 @@ static void cb3(void *s, size_t len, void *data)
 			teros, so we just update the timestamp each time, that way we always
 			send the latest one
 			*/
+			chr = strtol((char *)s, NULL, 10);
 			((sensor_data *)data)->timestamp = chr;
 		}
 		else if (t_col == MOISTURE)
