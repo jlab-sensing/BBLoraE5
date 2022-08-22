@@ -27,7 +27,7 @@
 #define BUF_LEN 1024
 #define NUM_T_SAMPLES 3
 
-#define T_HEADER_LENGTH 0 //this should be 1 but something funny is going on
+#define T_HEADER_LENGTH 1 //this should be 1 but something funny is going on
 #define RL_HEADER_LENGTH 10
 
 #define PARSE_PREP \
@@ -132,10 +132,10 @@ static void cb2(int c, void *data)
 static void cb3(void *s, size_t len, void *data)
 {
 	float chr = 0;
-
-	printf("Teros data: %i\n", chr);
+	printf("Num rows: %i", num_t_rows);
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
+		
 		if (t_col == T_TIMESTAMP)
 		{
 			/*
@@ -148,16 +148,19 @@ static void cb3(void *s, size_t len, void *data)
 		else if (t_col == MOISTURE)
 		{
 			chr = strtof((char *)s, NULL);
+			printf("Moisture: %f\n", chr);
 			ITERATIVE_AVG(((sensor_data *)data)->moisture, chr, num_t_rows);
 		}
 		else if (t_col == TEMP)
 		{
 			chr = strtof((char *)s, NULL);
+			printf("Temp: %f\n", chr);
 			ITERATIVE_AVG(((sensor_data *)data)->temp, chr, num_t_rows);
 		}
 		else if (t_col == CONDUCTIVITY)
 		{
 			chr = strtol((char *)s, NULL, 10);
+			printf("Cond: %i\n", chr);
 			ITERATIVE_AVG(((sensor_data *)data)->conductivity, chr, num_t_rows);
 		}
 	}
@@ -269,7 +272,7 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
-			if (num_samples >= 10)
+			if (num_samples >= 10 && num_t_rows > 1)
 			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],
