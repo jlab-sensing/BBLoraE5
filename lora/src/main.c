@@ -27,7 +27,7 @@
 #define BUF_LEN 1024
 #define NUM_T_SAMPLES 3
 
-#define T_HEADER_LENGTH 1
+#define T_HEADER_LENGTH 0 //this should be 1 but something funny is going on
 #define RL_HEADER_LENGTH 10
 
 #define PARSE_PREP \
@@ -131,9 +131,8 @@ static void cb2(int c, void *data)
 // Callback function 3 -- called at the end of individual teros fields
 static void cb3(void *s, size_t len, void *data)
 {
-	int chr = 0;
+	float chr = 0;
 
-	chr = strtol((char *)s, NULL, 10);
 	printf("Teros data: %i\n", chr);
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
@@ -148,14 +147,17 @@ static void cb3(void *s, size_t len, void *data)
 		}
 		else if (t_col == MOISTURE)
 		{
+			chr = strtof((char *)s, NULL);
 			ITERATIVE_AVG(((sensor_data *)data)->moisture, chr, num_t_rows);
 		}
 		else if (t_col == TEMP)
 		{
+			chr = strtof((char *)s, NULL);
 			ITERATIVE_AVG(((sensor_data *)data)->temp, chr, num_t_rows);
 		}
 		else if (t_col == CONDUCTIVITY)
 		{
+			chr = strtol((char *)s, NULL, 10);
 			ITERATIVE_AVG(((sensor_data *)data)->conductivity, chr, num_t_rows);
 		}
 	}

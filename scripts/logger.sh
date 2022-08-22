@@ -17,9 +17,9 @@ if [[ ! -d $DATA_PATH ]]; then
 fi
 
 lora $TEROS_SOCKET $RL_SOCKET $NUM_SAMPLES &
-2s
+sleep 2s
 teroslogger -q -s $TEROS_SOCKET /dev/ttyACM0 &
-2s
+sleep 2s
 
 while true; do
 	TIMESTAMP=`date +"%Y-%m-%d_%T"`
