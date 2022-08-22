@@ -132,7 +132,6 @@ static void cb2(int c, void *data)
 static void cb3(void *s, size_t len, void *data)
 {
 	float chr = 0;
-	printf("Num rows: %i", num_t_rows);
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
 		
@@ -148,19 +147,16 @@ static void cb3(void *s, size_t len, void *data)
 		else if (t_col == MOISTURE)
 		{
 			chr = strtof((char *)s, NULL);
-			printf("Moisture: %f\n", chr);
 			ITERATIVE_AVG(((sensor_data *)data)->moisture, chr, num_t_rows);
 		}
 		else if (t_col == TEMP)
 		{
 			chr = strtof((char *)s, NULL);
-			printf("Temp: %f\n", chr);
 			ITERATIVE_AVG(((sensor_data *)data)->temp, chr, num_t_rows);
 		}
 		else if (t_col == CONDUCTIVITY)
 		{
 			chr = strtol((char *)s, NULL, 10);
-			printf("Cond: %i\n", chr);
 			ITERATIVE_AVG(((sensor_data *)data)->conductivity, chr, num_t_rows);
 		}
 	}
@@ -173,7 +169,6 @@ static void cb4(int c, void *data)
 {
 	num_t_rows++;
 	t_col = T_TIMESTAMP;
-	printf("Callback 4\n");
 }
 
 /*******************************************************************************
