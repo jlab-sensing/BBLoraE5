@@ -76,6 +76,7 @@ typedef struct sensor_data
 
 static int num_rl_rows = 0;
 static int num_t_rows = 0;
+static int num_samples = 0;
 static rl_fields rl_col = RL_TIMESTAMP;
 static teros_fields t_col = T_TIMESTAMP;
 
@@ -89,8 +90,6 @@ static teros_fields t_col = T_TIMESTAMP;
 static void cb1(void *s, size_t len, void *data)
 {
 	int chr = 0;
-
-	static int num_samples = 0;
 
 	chr = strtol((char *)s, NULL, 10);
 
@@ -186,9 +185,15 @@ int main(int argc, char *argv[])
 
 	// argv[1] = teros socket name
 	// argv[2] = rocketlogger socket name
-	if (argc != 3)
+	// argv[3] = number of rocketlogger samples
+	if (argc != 4)
 	{
 		error(EXIT_FAILURE, 0, "Missing program argument");
+	}
+
+	if (argv[3] < 0)
+	{
+		error(EXIT_FAILURE, 0, "Improper number of rocketlogger samples");
 	}
 
 	if (AT_Init(UART5))
@@ -234,11 +239,10 @@ int main(int argc, char *argv[])
 	int rl_fd = 0;
 	int t_bytes_read = 0;
 	int rl_bytes_read = 0;
-	int er = 0;
 
 	while (1)
 	{
-		if (rl_fd > 0)
+		if (rl_fd <= 0)
 		{
 			rl_fd = ipc_server_accept(rl_server);
 			printf("RL client accepted\n");
@@ -264,7 +268,7 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
-			else if (errno == EAGAIN)
+			if (num_samples >= 10)
 			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],

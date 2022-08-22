@@ -16,7 +16,7 @@ if [[ ! -d $DATA_PATH ]]; then
 	mkdir -p $DATA_PATH
 fi
 
-lora $TEROS_SOCKET $RL_SOCKET &
+lora $TEROS_SOCKET $RL_SOCKET $NUM_SAMPLES &
 teroslogger -q -s $TEROS_SOCKET /dev/ttyACM0 &
 
 while true; do
