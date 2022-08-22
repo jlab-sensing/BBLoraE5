@@ -297,6 +297,7 @@ int main(int argc, char *argv[])
 				// reset row and sample count
 				num_t_rows = 0;
 				num_rl_rows = 0;
+				num_samples = 0;
 				rl_col = RL_TIMESTAMP;
 				t_col = T_TIMESTAMP;
 			}
