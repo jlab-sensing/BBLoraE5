@@ -7,7 +7,7 @@ TEROS_SOCKET=/tmp/terosstream.socket
 # Path to USB port for teroslogger
 DEV=/dev/ttyACM0
 # Number of samples per upload
-NUM_SAMPLES=10
+NUM_SAMPLES=20
 # Path to log temperary data to
 DATA_PATH=/tmp/rl_data
 
@@ -24,7 +24,6 @@ sleep 2s
 while true; do
 	TIMESTAMP=`date +"%Y-%m-%d_%T"`
 	RL_FILENAME="${DATA_PATH}/${TIMESTAMP}_rl.csv"
+	csvstream $RL_SOCKET $RL_FILENAME $NUM_SAMPLES
 	rocketlogger sample $NUM_SAMPLES -r 1 -format csv -f $RL_FILENAME -ch 0,1,2,3,4,5 -d 0 -w 0
-	csvstream $RL_SOCKET $RL_FILENAME
-	sleep 10s
 done

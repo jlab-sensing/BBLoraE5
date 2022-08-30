@@ -249,15 +249,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			if ((t_bytes_read = ipc_read(t_fd, buf, BUF_LEN)) > 0)
-			{
-				if (csv_parse(&p2, buf, t_bytes_read, cb3, cb4, &soil_data) != t_bytes_read)
-				{
-					fprintf(stderr, "Error while parsing file: %s\n",
-							csv_strerror(csv_error(&p2)));
-					exit(EXIT_FAILURE);
-				}
-			}
+			
 
 			if ((rl_bytes_read = ipc_read(rl_fd, buf, BUF_LEN)) > 0)
 			{
@@ -268,7 +260,7 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
-			if (num_samples >= 10 && num_t_rows > 1)
+			if (num_samples >= argv[3] && num_t_rows > 1)
 			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],
