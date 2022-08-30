@@ -254,7 +254,15 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			
+			if ((t_bytes_read = ipc_read(t_fd, buf, BUF_LEN)) > 0)
+			{
+				if (csv_parse(&p2, buf, t_bytes_read, cb3, cb4, &soil_data) != t_bytes_read)
+				{
+					fprintf(stderr, "Error while parsing file: %s\n",
+							csv_strerror(csv_error(&p2)));
+					exit(EXIT_FAILURE);
+				}
+			}
 
 			if ((rl_bytes_read = ipc_read(rl_fd, buf, BUF_LEN)) > 0)
 			{
