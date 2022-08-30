@@ -27,7 +27,7 @@
 #define BUF_LEN 1024
 #define NUM_T_SAMPLES 3
 
-#define T_HEADER_LENGTH 1 //this should be 1 but something funny is going on
+#define T_HEADER_LENGTH 1
 #define RL_HEADER_LENGTH 10
 
 #define PARSE_PREP \
@@ -99,22 +99,18 @@ static void cb1(void *s, size_t len, void *data)
 		num_samples = num_rl_rows - (RL_HEADER_LENGTH - 1);
 		if (rl_col == V1)
 		{
-			// RL_IT_AVG(0, chr, num_samples);
 			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_1[VOLTAGE], chr, num_samples);
 		}
 		else if (rl_col == I1L)
 		{
-			// RL_IT_AVG(2, chr, num_samples);
 			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_1[CURRENT], chr, num_samples);
 		}
 		else if (rl_col == V2)
 		{
-			// RL_IT_AVG(3, chr, num_samples);
 			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_2[VOLTAGE], chr, num_samples);
 		}
 		else if (rl_col == I2L)
 		{
-			// RL_IT_AVG(5, chr, num_samples);
 			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_2[CURRENT], chr, num_samples);
 		}
 	}
@@ -200,7 +196,7 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Improper number of rocketlogger samples");
 	}
 
-	if (AT_Init(UART5))
+	if (AT_Init(UART5, BAUD96, TIMEOUT))
 	{
 		error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
 	}
@@ -281,7 +277,10 @@ int main(int argc, char *argv[])
 						soil_data.moisture, soil_data.temp, soil_data.conductivity);
 
 				printf("Payload: %s\n", lora_msg);
-				AT_SendString(UART5, lora_msg);
+				if (AT_SendString(UART5, lora_msg))
+				{
+					error(EXIT_FAILURE, 0, "Error sending LoRa packet");
+				}
 
 				ipc_close(rl_fd);
 				rl_fd = 0;

@@ -4,22 +4,11 @@
 #include <stdint.h>
 
 #define AT_TEST_HARNESS
-
-
-#define TX 1
-#define RX 2
-#define VERIFY_RXTX(mode, res, len) {\
-	if (res != len || res == -1){\
-		return (mode == TX)?(TX_ERROR):(RX_ERROR); \
-		}\
-	}
 	
-#define VERIFY_BUS(bus) if ((bus > 5) || (bus < 0)){return BAD_BUS;}
-
-
-//Ensure that string isn't too long
+//Generic function to send arbitrary payload
 int AT_SerialTransmit(int bus, char *data){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
+
 	int res = 0;
 	int len = strlen(data);
 	
@@ -29,24 +18,26 @@ int AT_SerialTransmit(int bus, char *data){
 	}
 	//write data to uart bus
 	res = rc_uart_write(bus, data, len);
-	VERIFY_RXTX(TX, res , len);
+	if (res != len) return TX_ERROR;
 	
 	return SUCCESS;
 }
 
+//Generic function to retrieve payload
 int AT_SerialReceive(int bus, char * buf){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	int res = 0;
 	
 	res = rc_uart_read_line(bus, buf, MAX_PAYLOAD_LENGTH);
 	//unknown response length, so disregard length check in macro
-	VERIFY_RXTX(RX, res, res); 
+	if (res < 0) return RX_ERROR;
 	
 	return SUCCESS;
 }
 
+//Sends a dummy message to LoRa module to verify connectivity
 int AT_TestConnection(int bus){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	int i;
 	char incoming[MAX_PAYLOAD_LENGTH] = {0};
 	
@@ -69,8 +60,9 @@ int AT_TestConnection(int bus){
 	return SUCCESS;
 }
 
+//Retrieves current LoRaWAN version
 int AT_CheckVersion(int bus){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	char incoming[MAX_PAYLOAD_LENGTH] = {0};
 
 	//Retrieve module firmware version
@@ -98,8 +90,9 @@ int AT_CheckVersion(int bus){
 	return SUCCESS;
 }
 
+//Retrieves current module ID information: DevAddr, DevEui, AppEui
 int AT_CheckID(int bus){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	int i;
 	char incoming[MAX_PAYLOAD_LENGTH];
 	
@@ -119,8 +112,9 @@ int AT_CheckID(int bus){
 	return SUCCESS;
 }
 
+//Prints the module's current data rate settings
 int AT_CheckDataRate(int bus){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	char buf[MAX_PAYLOAD_LENGTH] = {0};
 	//request device to send data rate
 	if (AT_SerialTransmit(bus, "AT+DR\n")){return TX_ERROR;}
@@ -137,8 +131,9 @@ int AT_CheckDataRate(int bus){
 	return SUCCESS;
 }
 
+//Set module network session key -- required for application registration
 int AT_SetNwkSKey(int bus, uint8_t *key){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that network session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
@@ -153,8 +148,9 @@ int AT_SetNwkSKey(int bus, uint8_t *key){
 	return SUCCESS;
 }
 
+//Set application session key -- required for application registration
 int AT_SetAppSKey(int bus, uint8_t *key){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that application session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
@@ -169,8 +165,9 @@ int AT_SetAppSKey(int bus, uint8_t *key){
 	return SUCCESS;
 }
 
+//Set module data rate
 int AT_SetDataRate(int bus, int rate){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	if ((rate<0) || (rate > 15)){return ERROR;}
 	
 	char data[MAX_PAYLOAD_LENGTH];
@@ -193,8 +190,9 @@ int AT_SetDataRate(int bus, int rate){
 	return SUCCESS;
 }
 
+//Put LoRaWAN module into low power mode
 int AT_LowPower(int bus, int timeout){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	if (timeout<0)return ERROR;
 	
 	if (timeout){
@@ -207,8 +205,9 @@ int AT_LowPower(int bus, int timeout){
 	return SUCCESS;
 }
 
+//Send a generic string over LoRa module
 int AT_SendString(int bus, char *str){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	char data[MAX_PAYLOAD_LENGTH] = {0};
 
 	if (snprintf(data, MAX_PAYLOAD_LENGTH, "AT+CMSG=\"%s\"\n", str) < 0){
@@ -224,17 +223,13 @@ int AT_SendString(int bus, char *str){
 	
 }
 
-int AT_Init(int bus){
-	
-	//config-pin only works on certain debian versions. need to enable uart w/o
-	// system("config-pin P9.21 uart\n");
-	// system("config-pin P9.22 uart\n");
+//Initialize LoRaWAN module
+int AT_Init(int bus, int baud, int timeout){
 	char init_msg[MAX_PAYLOAD_LENGTH] = {0};
 	sprintf(init_msg, "stty -F /dev/ttyO%i 9600 cs8 -cstopb -parenb", bus);
 	system(init_msg);
-	// system("stty -F /dev/ttyO2 9600 cs8 -cstopb -parenb\n");
 	
-	if (rc_uart_init(bus, 9600, 1, CAN_EN, SB, PAR) == -1){
+	if (rc_uart_init(bus, baud, timeout, CAN_EN, SB, PAR) == -1){
 		printf("Error in UART2 initialization.\n");
 		// return ERROR;
 	}
