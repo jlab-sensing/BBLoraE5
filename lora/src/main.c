@@ -190,7 +190,12 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Missing program argument");
 	}
 
-	if (argv[3] < 0)
+	int min_rl_samples = strtol(argv[3], NULL, 10);
+	if (min_rl_samples <= 0)
+	{
+		error(EXIT_FAILURE, 0, "Error converting CLI argument to int");
+	}
+	if (min_rl_samples < 0)
 	{
 		error(EXIT_FAILURE, 0, "Improper number of rocketlogger samples");
 	}
@@ -260,7 +265,7 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
-			if (num_samples >= argv[3] && num_t_rows > 1)
+			if (num_samples >= min_rl_samples && num_t_rows > 1)
 			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],

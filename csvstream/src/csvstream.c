@@ -61,6 +61,11 @@ int main(int argc, char *argv[])
 	//argv[1] socket name
 	//argv[2] file to read from
 	//argv[3] number of samples to read
+	int total_rl_samples = strtol(argv[3], NULL, 10);
+	if (total_rl_samples <= 0)
+	{
+		error(EXIT_FAILURE, 0, "Error converting CLI argument to int");
+	}
 
 	char *socket_file = argv[1];
 
@@ -105,7 +110,7 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
-			if (row >= argv[3])
+			if (row >= total_rl_samples)
 			{
 				ipc_close(client);
 				return 0;
