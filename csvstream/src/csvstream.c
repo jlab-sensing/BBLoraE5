@@ -18,7 +18,6 @@
 
 static char pstring[BUF_LEN];
 static int col;
-static int row;
 static int client;
 
 void cb1(void *s, size_t len, void *data)
@@ -32,7 +31,6 @@ void cb1(void *s, size_t len, void *data)
 void cb2(int c, void *data)
 {
 	col = 0;
-	row++;
 
 	strncat(pstring, "\n", 1);
 	int num_write = ipc_write(client, pstring, strlen(pstring));
@@ -54,18 +52,12 @@ int main(int argc, char *argv[])
 {
 	printf("pipstream, compiled on %s %s\n", __DATE__, __TIME__);
 
-	if (argc != 4)
+	if (argc != 3)
 	{
 		error(EXIT_FAILURE, 0, "Missing socket file");
 	}
-	//argv[1] socket name
-	//argv[2] file to read from
-	//argv[3] number of samples to read
-	int total_rl_samples = strtol(argv[3], NULL, 10);
-	if (total_rl_samples <= 0)
-	{
-		error(EXIT_FAILURE, 0, "Error converting CLI argument to int");
-	}
+	// argv[1] socket name
+	// argv[2] file to read from
 
 	char *socket_file = argv[1];
 
@@ -96,7 +88,6 @@ int main(int argc, char *argv[])
 		// Read buffer
 		char buf[BUF_LEN];
 		col = 0;
-		row = 0;
 		for (;;)
 		{
 			// Get from rl csv
@@ -110,11 +101,8 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
-			if (row >= total_rl_samples)
-			{
-				ipc_close(client);
-				return 0;
-			}
+			ipc_close(client);
+			return 0;
 		}
 
 		ipc_close(client);
