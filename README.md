@@ -6,6 +6,26 @@ it's difficult to collect data from cells without going to their physical locati
 implemented LoRaWAN to broadcast data collected by evaluation devices in the field. The data is received by a LoRaWAN gateway, which forwards it to our network server (we use [chirpstack](https://www.chirpstack.io/), but there are alternatives such as [The Things Network (TTN)](https://www.thethingsnetwork.org/)), where the payload is processed and then uploaded to a database. We then plot this data to provide an easily understood,
 graphical representation of the MFC's performance.
 
+Configuring the Rocketloggers
+---------------------------------------------------------------------------------------------------
+
+Because of how heavily multiplexed the Rocketlogger pins are, the only UART bus that we can use is UART5.  Type `ls -l /dev/ttyO*`, and it should only list one line:
+```
+crw-rw---- 1 root tty  247, date time /dev/ttyO0
+```
+
+By default, the beaglebones don't come with UART5 enabled which means it has to be set up manually. To enable UART5, type `sudo nano /boot/uEnv.txt`. It'll display a text file that should start with a link to some documentation and the name of the rocketlogger -- from there, add a line at the bottom saying
+```
+cape_enable=capemgr.enable_partno=BB-UART5
+```
+
+If you list the ttyO* devices again again, it should have added another line which signals that ttyO5 has been enabled.
+
+AT_Init() in lora.c will configure the bus to 9600-8-n-1, but that can be done manually with 
+```
+stty -F /dev/ttyO# 9600 cs8 -cstopb -parenb
+```
+
 LoRaWAN
 ----------------------------------------------------------------------------------------------------
 
