@@ -24,6 +24,9 @@
 #define VOLTAGE 0
 #define CURRENT 1
 
+#define LORA 0
+#define ETHERNET 1
+
 #define BUF_LEN 1024
 #define NAME_BUF 32
 #define NUM_T_SAMPLES 3
@@ -170,27 +173,11 @@ static void cb4(int c, void *data)
 	t_col = T_TIMESTAMP;
 }
 
-//fills strings with the name of the current user and the cells which the 
-//rocketlogger owns. used to gather info for transmission via ethernet
+// fills strings with the name of the current user and the cells which the
+// rocketlogger owns. used to gather info for transmission via ethernet
 static void get_device_info(char *user, char *cel)
 {
-	if (getlogin_r(user, NAME_BUF))
-	{
-		error(EXIT_FAILURE, 0, "Error retrieving username");
-	}
-
-	FILE *fp;
-	fp = fopen("rl.conf", "r");
-	if (fp == NULL)
-	{
-		error(EXIT_FAILURE, 0, "Error opening config file");
-	}
-	if (fgets(cel, NAME_BUF, fp) == NULL)
-	{
-		error(EXIT_FAILURE, 0, "Error retrieving cell names");
-	}
-
-	fclose(fp);
+	&user = getenv("LOGNAME");
 }
 
 /*******************************************************************************
@@ -207,31 +194,58 @@ int main(int argc, char *argv[])
 	// argv[2] = rocketlogger socket name
 	// argv[3] = number of rocketlogger samples
 	// argv[4] = transmit via lora or ethernet
+
+	// check for valid number of cli arguments
 	if (argc != 5)
 	{
 		error(EXIT_FAILURE, 0, "Missing program argument");
 	}
-
+	// ensure number of rocketlogger samples to take is valid
 	int min_rl_samples = strtol(argv[3], NULL, 10);
 	if (min_rl_samples <= 0)
-	{
-		error(EXIT_FAILURE, 0, "Error converting CLI argument to int");
-	}
-	if (min_rl_samples < 0)
 	{
 		error(EXIT_FAILURE, 0, "Invalid number of rocketlogger samples");
 	}
 
-	if (AT_Init(UART5, BAUD96, TIMEOUT))
+	// determine data transmission method
+	char *tmethod = argv[4];
+	int tmethod = strtol(argv[4], NULL, 10);
+	if (tmethod < 0)
 	{
-		error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
+		error(EXIT_FAILURE, 0, "Invalid data transmission option");
 	}
 
-	char *tmethod = argv[4];
+	if (tmethod == LORA)
+	{
+		// initialize UART bus for lora
+		if (AT_Init(UART5, BAUD96, TIMEOUT))
+		{
+			error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
+		}
+	}
+	else if (tmethod == ETHERNET)
+	{
+		// retrieve current user name
+		char *username = getenv("LOGNAME");
+		char cells[NAME_BUF];
 
-	char username[NAME_BUF];
-	char cells[NAME_BUF];
-	get_device_info(username, cells);
+		// retrieve cell names which belong to the active rocketlogger
+		FILE *fp;
+		fp = fopen("config.txt", "r");
+		if (fp == NULL)
+		{
+			error(EXIT_FAILURE, 0, "Error opening config file");
+		}
+		if (fgets(cells, NAME_BUF, fp) == NULL)
+		{
+			error(EXIT_FAILURE, 0, "Error retrieving cell names");
+		}
+		fclose(fp);
+	}
+	else
+	{
+		error(EXIT_FAILURE, 0, "Invalid data transmission method");
+	}
 
 	// create server for rocketlogger
 	int rl_server = ipc_server(argv[2]);
@@ -274,13 +288,16 @@ int main(int argc, char *argv[])
 
 	while (1)
 	{
+
 		if (rl_fd <= 0)
 		{
+			// wait until rocketlogger successfully connects to the socket
 			rl_fd = ipc_server_accept(rl_server);
 			printf("RL client accepted\n");
 		}
 		else
 		{
+			// collect and send data samples
 			if ((t_bytes_read = ipc_read(t_fd, buf, BUF_LEN)) > 0)
 			{
 				if (csv_parse(&p2, buf, t_bytes_read, cb3, cb4, &soil_data) != t_bytes_read)
@@ -300,6 +317,7 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
+
 			if (num_samples >= min_rl_samples && num_t_rows > 1)
 			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
@@ -309,21 +327,23 @@ int main(int argc, char *argv[])
 
 				printf("Payload: %s\n", lora_msg);
 
-				if (!strcmp(tmethod, "ethernet"))
+				if (tmethod == LORA)
 				{
-					// Send POST request to jlab server
-					char tmsg[MAX_PAYLOAD_LENGTH] = {0};
-					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\"" 
-									"- H \"Cells: %s\" -H \"Device-Name: %s\""
-									"- d \"%s\"", cells, username, lora_msg);
-					printf("%s", tmsg);
-				}
-				else if (!strcmp(tmethod, "lora"))
-				{
+					// Send data samples to LoRaWAN gateway
 					if (AT_SendString(UART5, lora_msg))
 					{
 						error(EXIT_FAILURE, 0, "Error sending LoRa packet");
 					}
+				}
+				else if (tmethod == ETHERNET)
+				{
+					// Send POST request to jlab server
+					char tmsg[MAX_PAYLOAD_LENGTH] = {0};
+					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
+								  "- H \"Cells: %s\" -H \"Device-Name: %s\""
+								  "- d \"%s\"",
+							cells, username, lora_msg);
+					printf("%s", tmsg);
 				}
 				else
 				{
