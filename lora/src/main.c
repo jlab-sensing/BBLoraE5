@@ -25,7 +25,9 @@
 #define CURRENT 1
 
 #define BUF_LEN 1024
+#define NAME_BUF 32
 #define NUM_T_SAMPLES 3
+#define NUM_CELLS 2
 
 #define T_HEADER_LENGTH 1
 #define RL_HEADER_LENGTH 10
@@ -130,7 +132,7 @@ static void cb3(void *s, size_t len, void *data)
 	float chr = 0;
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
-		
+
 		if (t_col == T_TIMESTAMP)
 		{
 			/*
@@ -168,6 +170,29 @@ static void cb4(int c, void *data)
 	t_col = T_TIMESTAMP;
 }
 
+//fills strings with the name of the current user and the cells which the 
+//rocketlogger owns. used to gather info for transmission via ethernet
+static void get_device_info(char *user, char *cel)
+{
+	if (getlogin_r(user, NAME_BUF))
+	{
+		error(EXIT_FAILURE, 0, "Error retrieving username");
+	}
+
+	FILE *fp;
+	fp = fopen("rl.conf", "r");
+	if (fp == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Error opening config file");
+	}
+	if (fgets(cel, NAME_BUF, fp) == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Error retrieving cell names");
+	}
+
+	fclose(fp);
+}
+
 /*******************************************************************************
  *
  *	MAIN FUNCTION
@@ -181,7 +206,8 @@ int main(int argc, char *argv[])
 	// argv[1] = teros socket name
 	// argv[2] = rocketlogger socket name
 	// argv[3] = number of rocketlogger samples
-	if (argc != 4)
+	// argv[4] = transmit via lora or ethernet
+	if (argc != 5)
 	{
 		error(EXIT_FAILURE, 0, "Missing program argument");
 	}
@@ -193,13 +219,19 @@ int main(int argc, char *argv[])
 	}
 	if (min_rl_samples < 0)
 	{
-		error(EXIT_FAILURE, 0, "Improper number of rocketlogger samples");
+		error(EXIT_FAILURE, 0, "Invalid number of rocketlogger samples");
 	}
 
 	if (AT_Init(UART5, BAUD96, TIMEOUT))
 	{
 		error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
 	}
+
+	char *tmethod = argv[4];
+
+	char username[NAME_BUF] = {0};
+	char cells[NAME_BUF] = {0};
+	get_device_info(username, cells);
 
 	// create server for rocketlogger
 	int rl_server = ipc_server(argv[2]);
@@ -210,7 +242,6 @@ int main(int argc, char *argv[])
 	printf("Teros server created\n");
 	int t_fd = ipc_server_accept(t_server);
 	printf("Teros client accepted\n");
-
 
 	char buf[BUF_LEN] = {0};
 	char lora_msg[MAX_PAYLOAD_LENGTH] = {0};
@@ -277,9 +308,26 @@ int main(int argc, char *argv[])
 						soil_data.moisture, soil_data.temp, soil_data.conductivity);
 
 				printf("Payload: %s\n", lora_msg);
-				if (AT_SendString(UART5, lora_msg))
+
+				if (!strcmp(tmethod, "ethernet"))
 				{
-					error(EXIT_FAILURE, 0, "Error sending LoRa packet");
+					// Send POST request to jlab server
+					char tmsg[MAX_PAYLOAD_LENGTH] = {0};
+					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\"" 
+									"- H \"Cells: %s\" -H \"Device-Name: %s\""
+									"- d \"%s\"", cells, username, lora_msg);
+					printf("%s", tmsg);
+				}
+				else if (!strcmp(tmethod, "lora"))
+				{
+					if (AT_SendString(UART5, lora_msg))
+					{
+						error(EXIT_FAILURE, 0, "Error sending LoRa packet");
+					}
+				}
+				else
+				{
+					error(EXIT_FAILURE, 0, "Invalid transmission method");
 				}
 
 				ipc_close(rl_fd);
