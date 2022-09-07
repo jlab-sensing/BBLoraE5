@@ -215,6 +215,11 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Invalid data transmission option");
 	}
 
+	// retrieve current user name
+	// I'd like to keep this under ETHERNET, but the compiler throws an error
+	char *username = getenv("LOGNAME");
+	char cells[NAME_BUF];
+	
 	if (tmethod == LORA)
 	{
 		// initialize UART bus for lora
@@ -225,10 +230,6 @@ int main(int argc, char *argv[])
 	}
 	else if (tmethod == ETHERNET)
 	{
-		// retrieve current user name
-		char *username = getenv("LOGNAME");
-		char cells[NAME_BUF];
-
 		// retrieve cell names which belong to the active rocketlogger
 		FILE *fp;
 		fp = fopen("config.txt", "r");
