@@ -229,8 +229,8 @@ int main(int argc, char *argv[])
 
 	char *tmethod = argv[4];
 
-	char *username;
-	char *cells;
+	char username[NAME_BUF];
+	char cells[NAME_BUF];
 	get_device_info(username, cells);
 
 	// create server for rocketlogger
