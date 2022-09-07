@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 	}
 
 	// determine data transmission method
-	char *tmethod = argv[4];
+	int tmethod = argv[4];
 	int tmethod = strtol(argv[4], NULL, 10);
 	if (tmethod < 0)
 	{
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
 	// I'd like to keep this under ETHERNET, but the compiler throws an error
 	char *username = getenv("LOGNAME");
 	char cells[NAME_BUF];
-	
+
 	if (tmethod == LORA)
 	{
 		// initialize UART bus for lora
