@@ -173,13 +173,6 @@ static void cb4(int c, void *data)
 	t_col = T_TIMESTAMP;
 }
 
-// fills strings with the name of the current user and the cells which the
-// rocketlogger owns. used to gather info for transmission via ethernet
-static void get_device_info(char *user, char *cel)
-{
-	&user = getenv("LOGNAME");
-}
-
 /*******************************************************************************
  *
  *	MAIN FUNCTION
@@ -208,7 +201,6 @@ int main(int argc, char *argv[])
 	}
 
 	// determine data transmission method
-	int tmethod = argv[4];
 	int tmethod = strtol(argv[4], NULL, 10);
 	if (tmethod < 0)
 	{
@@ -339,11 +331,10 @@ int main(int argc, char *argv[])
 				else if (tmethod == ETHERNET)
 				{
 					// Send POST request to jlab server
-					char tmsg[MAX_PAYLOAD_LENGTH] = {0};
+					char tmsg[BUF_LEN] = {0};
 					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
-								  "- H \"Cells: %s\" -H \"Device-Name: %s\""
-								  "- d \"%s\"",
-							cells, username, lora_msg);
+								  "-H \"Cells: %s\" -H \"Device-Name: %s\""
+								  "-d \"%s\"", cells, username, lora_msg);
 					printf("%s", tmsg);
 				}
 				else
