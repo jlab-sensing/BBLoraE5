@@ -10,8 +10,8 @@ DEV=/dev/ttyACM0
 NUM_SAMPLES=20
 # Path to log temperary data to
 DATA_PATH=/tmp/rl_data
-# Transmission method (lora/ethernet)
-METHOD=ethernet
+# Transmission method (lora=0/ethernet=1)
+METHOD=1
 
 # Create data folder if dne
 if [[ ! -d $DATA_PATH ]]; then
