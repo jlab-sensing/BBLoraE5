@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 	// I'd like to keep this under ETHERNET, but the compiler throws an error
 	char *username = getenv("LOGNAME");
 	char cells[NAME_BUF];
-
+	
 	if (tmethod == LORA)
 	{
 		// initialize UART bus for lora
@@ -234,6 +234,7 @@ int main(int argc, char *argv[])
 			error(EXIT_FAILURE, 0, "Error retrieving cell names");
 		}
 		fclose(fp);
+		cells[strcspn(cells, "\n")] = 0; //remove newline character
 	}
 	else
 	{
@@ -333,9 +334,10 @@ int main(int argc, char *argv[])
 					// Send POST request to jlab server
 					char tmsg[BUF_LEN] = {0};
 					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
-								  "-H \"Cells: %s\" -H \"Device-Name: %s\""
-								  "-d \"%s\"", cells, username, lora_msg);
+								  " -H \"Cells: %s\" -H \"Device-Name: %s\""
+								  " -d \"%s\"", cells, username, lora_msg);
 					printf("%s", tmsg);
+					//final implementation needs to send to stdout
 				}
 				else
 				{
