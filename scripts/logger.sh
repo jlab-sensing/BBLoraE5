@@ -10,13 +10,15 @@ DEV=/dev/ttyACM0
 NUM_SAMPLES=20
 # Path to log temperary data to
 DATA_PATH=/tmp/rl_data
+# Transmission method (lora=0/ethernet=1)
+METHOD=1
 
 # Create data folder if dne
 if [[ ! -d $DATA_PATH ]]; then
 	mkdir -p $DATA_PATH
 fi
 
-lora $TEROS_SOCKET $RL_SOCKET $NUM_SAMPLES &
+lora $TEROS_SOCKET $RL_SOCKET $NUM_SAMPLES $METHOD&
 sleep 2s
 teroslogger -q -s $TEROS_SOCKET /dev/ttyACM0 &
 sleep 2s

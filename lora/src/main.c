@@ -24,8 +24,13 @@
 #define VOLTAGE 0
 #define CURRENT 1
 
+#define LORA 0
+#define ETHERNET 1
+
 #define BUF_LEN 1024
+#define NAME_BUF 32
 #define NUM_T_SAMPLES 3
+#define NUM_CELLS 2
 
 #define T_HEADER_LENGTH 1
 #define RL_HEADER_LENGTH 10
@@ -130,7 +135,7 @@ static void cb3(void *s, size_t len, void *data)
 	float chr = 0;
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
-		
+
 		if (t_col == T_TIMESTAMP)
 		{
 			/*
@@ -181,24 +186,59 @@ int main(int argc, char *argv[])
 	// argv[1] = teros socket name
 	// argv[2] = rocketlogger socket name
 	// argv[3] = number of rocketlogger samples
-	if (argc != 4)
+	// argv[4] = transmit via lora or ethernet
+
+	// check for valid number of cli arguments
+	if (argc != 5)
 	{
 		error(EXIT_FAILURE, 0, "Missing program argument");
 	}
-
+	// ensure number of rocketlogger samples to take is valid
 	int min_rl_samples = strtol(argv[3], NULL, 10);
 	if (min_rl_samples <= 0)
 	{
-		error(EXIT_FAILURE, 0, "Error converting CLI argument to int");
-	}
-	if (min_rl_samples < 0)
-	{
-		error(EXIT_FAILURE, 0, "Improper number of rocketlogger samples");
+		error(EXIT_FAILURE, 0, "Invalid number of rocketlogger samples");
 	}
 
-	if (AT_Init(UART5, BAUD96, TIMEOUT))
+	// determine data transmission method
+	int tmethod = strtol(argv[4], NULL, 10);
+	if (tmethod < 0)
 	{
-		error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
+		error(EXIT_FAILURE, 0, "Invalid data transmission option");
+	}
+
+	// retrieve current user name
+	// I'd like to keep this under ETHERNET, but the compiler throws an error
+	char *username = getenv("LOGNAME");
+	char cells[NAME_BUF];
+	
+	if (tmethod == LORA)
+	{
+		// initialize UART bus for lora
+		if (AT_Init(UART5, BAUD96, TIMEOUT))
+		{
+			error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
+		}
+	}
+	else if (tmethod == ETHERNET)
+	{
+		// retrieve cell names which belong to the active rocketlogger
+		FILE *fp;
+		fp = fopen("config.txt", "r");
+		if (fp == NULL)
+		{
+			error(EXIT_FAILURE, 0, "Error opening config file");
+		}
+		if (fgets(cells, NAME_BUF, fp) == NULL)
+		{
+			error(EXIT_FAILURE, 0, "Error retrieving cell names");
+		}
+		fclose(fp);
+		cells[strcspn(cells, "\n")] = 0; //remove newline character
+	}
+	else
+	{
+		error(EXIT_FAILURE, 0, "Invalid data transmission method");
 	}
 
 	// create server for rocketlogger
@@ -210,7 +250,6 @@ int main(int argc, char *argv[])
 	printf("Teros server created\n");
 	int t_fd = ipc_server_accept(t_server);
 	printf("Teros client accepted\n");
-
 
 	char buf[BUF_LEN] = {0};
 	char lora_msg[MAX_PAYLOAD_LENGTH] = {0};
@@ -243,13 +282,16 @@ int main(int argc, char *argv[])
 
 	while (1)
 	{
+
 		if (rl_fd <= 0)
 		{
+			// wait until rocketlogger successfully connects to the socket
 			rl_fd = ipc_server_accept(rl_server);
 			printf("RL client accepted\n");
 		}
 		else
 		{
+			// collect and send data samples
 			if ((t_bytes_read = ipc_read(t_fd, buf, BUF_LEN)) > 0)
 			{
 				if (csv_parse(&p2, buf, t_bytes_read, cb3, cb4, &soil_data) != t_bytes_read)
@@ -269,6 +311,7 @@ int main(int argc, char *argv[])
 					exit(EXIT_FAILURE);
 				}
 			}
+
 			if (num_samples >= min_rl_samples && num_t_rows > 1)
 			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
@@ -277,9 +320,28 @@ int main(int argc, char *argv[])
 						soil_data.moisture, soil_data.temp, soil_data.conductivity);
 
 				printf("Payload: %s\n", lora_msg);
-				if (AT_SendString(UART5, lora_msg))
+
+				if (tmethod == LORA)
 				{
-					error(EXIT_FAILURE, 0, "Error sending LoRa packet");
+					// Send data samples to LoRaWAN gateway
+					if (AT_SendString(UART5, lora_msg))
+					{
+						error(EXIT_FAILURE, 0, "Error sending LoRa packet");
+					}
+				}
+				else if (tmethod == ETHERNET)
+				{
+					// Send POST request to jlab server
+					char tmsg[BUF_LEN] = {0};
+					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
+								  " -H \"Cells: %s\" -H \"Device-Name: %s\""
+								  " -d \"%s\"", cells, username, lora_msg);
+					printf("%s", tmsg);
+					//final implementation needs to send to stdout
+				}
+				else
+				{
+					error(EXIT_FAILURE, 0, "Invalid transmission method");
 				}
 
 				ipc_close(rl_fd);
