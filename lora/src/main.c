@@ -173,6 +173,46 @@ static void cb4(int c, void *data)
 	t_col = T_TIMESTAMP;
 }
 
+static void read_config(char **cells, int *method)
+{
+	FILE *fp;
+	fp = fopen("config.txt", "r");
+	char buf[1024];
+
+	if (fp == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Unable to open config file");
+	}
+
+	// get tx method
+	if (fgets(buf, 1024, fp) == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Unable to retrieve transmission method");
+	}
+	buf[strcspn(buf, "\n")] = 0; // remove newline character
+
+	if (!strcmp(buf, "lora"))
+	{
+		*method = 0;
+	}
+	else if (!strcmp(buf, "ethernet"))
+	{
+		*method = 1;
+	}
+	else
+	{
+		error(EXIT_FAILURE, 0, "Invalid data transmission method");
+	}
+
+	// get cells belonging to logger
+	if (fgets(cells, 1024, fp) == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Unable to retrieve cell names");
+	}
+	cells[strcspn(cells, "\n")] = 0; // remove newline character
+	fclose(fp);
+}
+
 /*******************************************************************************
  *
  *	MAIN FUNCTION
@@ -186,13 +226,13 @@ int main(int argc, char *argv[])
 	// argv[1] = teros socket name
 	// argv[2] = rocketlogger socket name
 	// argv[3] = number of rocketlogger samples
-	// argv[4] = transmit via lora or ethernet
 
 	// check for valid number of cli arguments
-	if (argc != 5)
+	if (argc != 4)
 	{
 		error(EXIT_FAILURE, 0, "Missing program argument");
 	}
+
 	// ensure number of rocketlogger samples to take is valid
 	int min_rl_samples = strtol(argv[3], NULL, 10);
 	if (min_rl_samples <= 0)
@@ -200,18 +240,16 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Invalid number of rocketlogger samples");
 	}
 
-	// determine data transmission method
-	int tmethod = strtol(argv[4], NULL, 10);
-	if (tmethod < 0)
-	{
-		error(EXIT_FAILURE, 0, "Invalid data transmission option");
-	}
-
 	// retrieve current user name
 	// I'd like to keep this under ETHERNET, but the compiler throws an error
 	char *username = getenv("LOGNAME");
-	char cells[NAME_BUF];
-	
+
+	char cells[NAME_BUF]; // microbial fuel cells belonging to active logger
+	uint8_t tmethod;
+
+	// retrieve cell names and tx method
+	read_config(&cells, &tmethod);
+
 	if (tmethod == LORA)
 	{
 		// initialize UART bus for lora
@@ -219,26 +257,6 @@ int main(int argc, char *argv[])
 		{
 			error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
 		}
-	}
-	else if (tmethod == ETHERNET)
-	{
-		// retrieve cell names which belong to the active rocketlogger
-		FILE *fp;
-		fp = fopen("config.txt", "r");
-		if (fp == NULL)
-		{
-			error(EXIT_FAILURE, 0, "Error opening config file");
-		}
-		if (fgets(cells, NAME_BUF, fp) == NULL)
-		{
-			error(EXIT_FAILURE, 0, "Error retrieving cell names");
-		}
-		fclose(fp);
-		cells[strcspn(cells, "\n")] = 0; //remove newline character
-	}
-	else
-	{
-		error(EXIT_FAILURE, 0, "Invalid data transmission method");
 	}
 
 	// create server for rocketlogger
@@ -248,6 +266,7 @@ int main(int argc, char *argv[])
 	// create server and accept connection from teros socket
 	int t_server = ipc_server(argv[1]);
 	printf("Teros server created\n");
+
 	int t_fd = ipc_server_accept(t_server);
 	printf("Teros client accepted\n");
 
@@ -335,9 +354,10 @@ int main(int argc, char *argv[])
 					char tmsg[BUF_LEN] = {0};
 					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
 								  " -H \"Cells: %s\" -H \"Device-Name: %s\""
-								  " -d \"%s\"", cells, username, lora_msg);
+								  " -d \"%s\" jlab.ucsc.edu:8000",
+							cells, username, lora_msg);
 					printf("%s", tmsg);
-					//final implementation needs to send to stdout
+					system(tmsg);
 				}
 				else
 				{
