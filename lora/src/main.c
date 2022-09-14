@@ -173,10 +173,10 @@ static void cb4(int c, void *data)
 	t_col = T_TIMESTAMP;
 }
 
-static void read_config(char **cells, int *method)
+static void read_config(char *cells, int *method)
 {
 	FILE *fp;
-	fp = fopen("config.txt", "r");
+	fp = fopen("rl.conf", "r");
 	char buf[1024];
 
 	if (fp == NULL)
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 	uint8_t tmethod;
 
 	// retrieve cell names and tx method
-	read_config(&cells, &tmethod);
+	read_config(cells, &tmethod);
 
 	if (tmethod == LORA)
 	{
