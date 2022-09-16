@@ -133,14 +133,14 @@ int AT_CheckDataRate(int bus){
 }
 
 //Set module network session key -- required for application registration
-int AT_SetNwkSKey(int bus, uint16_t *key){
+int AT_SetNwkSKey(int bus, uint64_t key){
 	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that network session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
 	
 	//place string into buffer
-	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%s\"\n", key);
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%i\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
 	
 	//currently no check to see if correct response
@@ -150,14 +150,14 @@ int AT_SetNwkSKey(int bus, uint16_t *key){
 }
 
 //Set application session key -- required for application registration
-int AT_SetAppSKey(int bus, uint16_t *key){
+int AT_SetAppSKey(int bus, uint64_t key){
 	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that application session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
 	
 	//place string into buffer
-	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%s\"\n", key);
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%i\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
 	
 	//currently no check to see if correct response
