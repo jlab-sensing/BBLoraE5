@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #define AT_TEST_HARNESS
 	
@@ -132,7 +133,7 @@ int AT_CheckDataRate(int bus){
 }
 
 //Set module network session key -- required for application registration
-int AT_SetNwkSKey(int bus, uint8_t *key){
+int AT_SetNwkSKey(int bus, uint16_t *key){
 	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that network session key is proper length (16bytes)
 	
@@ -149,7 +150,7 @@ int AT_SetNwkSKey(int bus, uint8_t *key){
 }
 
 //Set application session key -- required for application registration
-int AT_SetAppSKey(int bus, uint8_t *key){
+int AT_SetAppSKey(int bus, uint16_t *key){
 	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that application session key is proper length (16bytes)
 	
@@ -231,21 +232,32 @@ int AT_Init(int bus, int baud, int timeout){
 	
 	if (rc_uart_init(bus, baud, timeout, CAN_EN, SB, PAR) == -1){
 		printf("Error in UART2 initialization.\n");
-		// return ERROR;
+		return ERROR;
 	}
-
+	//if you have a serial terminal open (say you want to directly
+	//read the module's responses, you won't be able to read them from
+	//this program. meaning you might enter this if statement, but it
+	//actually is connected.)
 	if (AT_TestConnection(bus)){
 		printf("Beaglebone not connected to E5 module.\n");
-		// return ERROR;
 	}
-	//ADR will automatically set data rates, but we want to stick with DR1
+	//ADR will automatically set data rates, but we want to stick with DR2
 	//Not necessary for initialization, up to user
 	if (AT_SerialTransmit(bus, "AT+ADR=OFF\n") == -1){
 		printf("Error setting ADR function.\n");
+		return ERROR;
 	}
-	
+	//I don't like having the sleeps here, but if you send two commands
+	//too quickly, they'll essentially merge and both will fail.
+	sleep(1);
+	if (AT_SerialTransmit(bus, "AT+CH=NUM,8-15,64\n") == -1){
+		printf("Error selecting channels.\n");
+		return ERROR;
+	}
+	sleep(1);
 	if (AT_SetDataRate(bus, 2) == -1){
 		printf("Error setting datarate.\n");
+		return ERROR;
 	}
 	
 	return SUCCESS;

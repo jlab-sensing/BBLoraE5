@@ -173,7 +173,7 @@ static void cb4(int c, void *data)
 	t_col = T_TIMESTAMP;
 }
 
-static void read_config(char *cells, int *method)
+static void read_config(char *cells, uint8_t *method)
 {
 	FILE *fp;
 	fp = fopen("rl.conf", "r");
