@@ -133,7 +133,7 @@ int AT_CheckDataRate(int bus){
 }
 
 //Set module network session key -- required for application registration
-int AT_SetNwkSKey(int bus, uint64_t key){
+int AT_SetNwkSKey(int bus, long long key){
 	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that network session key is proper length (16bytes)
 	
@@ -150,7 +150,7 @@ int AT_SetNwkSKey(int bus, uint64_t key){
 }
 
 //Set application session key -- required for application registration
-int AT_SetAppSKey(int bus, uint64_t key){
+int AT_SetAppSKey(int bus, long long key){
 	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that application session key is proper length (16bytes)
 	
