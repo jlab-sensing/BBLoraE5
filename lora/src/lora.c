@@ -140,7 +140,7 @@ int AT_SetNwkSKey(int bus, uint64_t key){
 	char data[SKEY_MSG_LEN];
 	
 	//place string into buffer
-	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%i\"\n", key);
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%lli\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
 	
 	//currently no check to see if correct response
@@ -157,7 +157,7 @@ int AT_SetAppSKey(int bus, uint64_t key){
 	char data[SKEY_MSG_LEN];
 	
 	//place string into buffer
-	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%i\"\n", key);
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%lli\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
 	
 	//currently no check to see if correct response
