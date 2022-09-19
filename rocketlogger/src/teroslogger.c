@@ -280,7 +280,7 @@ int main(int argc, char** argv){
             }
 
             // Stop reading on line ending
-            if (*inbuf == '\n') {
+            if (*inbuf == '\r') {
                 ++inbuf;
                 break;
             }
