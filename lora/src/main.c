@@ -366,6 +366,7 @@ int main(int argc, char *argv[])
 
 				ipc_close(rl_fd);
 				rl_fd = 0;
+				memset(lora_msg, '\0', MAX_PAYLOAD_LENGTH);
 
 				// clear all averaged fields to obtain new values in next loop
 				soil_data.rl_channel_1[VOLTAGE] = 0;
