@@ -258,7 +258,7 @@ int main(int argc, char** argv){
     do {
         read(serial_port, inbuf, 1);
     }
-    while (*inbuf != '\n');
+    while (*inbuf != '\r');
 
     while (1) {
         // Store time
