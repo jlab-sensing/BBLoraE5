@@ -227,7 +227,7 @@ int AT_SendString(int bus, char *str){
 //Initialize LoRaWAN module
 int AT_Init(int bus, int baud, int timeout){
 	char init_msg[MAX_PAYLOAD_LENGTH] = {0};
-	sprintf(init_msg, "stty -F /dev/ttyO%i 9600 cs8 -cstopb -parenb", bus);
+	sprintf(init_msg, "stty -F /dev/ttyO%i %i cs8 -cstopb -parenb", bus, baud);
 	system(init_msg);
 	
 	if (rc_uart_init(bus, baud, timeout, CAN_EN, SB, PAR) == -1){
@@ -235,7 +235,7 @@ int AT_Init(int bus, int baud, int timeout){
 		return ERROR;
 	}
 	//if you have a serial terminal open (say you want to directly
-	//read the module's responses, you won't be able to read them from
+	//read the module's responses), you won't be able to read them from
 	//this program. meaning you might enter this if statement, but it
 	//actually is connected.)
 	if (AT_TestConnection(bus)){

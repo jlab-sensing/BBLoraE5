@@ -29,8 +29,6 @@
 
 #define BUF_LEN 1024
 #define NAME_BUF 32
-#define NUM_T_SAMPLES 3
-#define NUM_CELLS 2
 
 #define T_HEADER_LENGTH 1
 #define RL_HEADER_LENGTH 10
@@ -45,7 +43,6 @@
 #define T_GATHER 1
 #define RL_GATHER 2
 #define TRANSMIT 3
-
 
 /*******************************************************************************
  *
@@ -107,8 +104,15 @@ static void cb1(void *s, size_t len, void *data)
 	// num_samples remains zero until it reaches the end of the file header
 	if (num_rl_rows >= RL_HEADER_LENGTH)
 	{
+		/* The total number of samples is increased when parsing the header
+		 * because each header line triggers cb2, so we subtract the line length
+		 * of the header to get the correct number of valid samples*/
 		num_samples = num_rl_rows - (RL_HEADER_LENGTH - 1);
-		if (rl_col == V1)
+		if (rl_col == RL_TIMESTAMP)
+		{
+			((sensor_data *)data)->timestamp = chr;
+		}
+		else if (rl_col == V1)
 		{
 			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_1[VOLTAGE], chr, num_samples);
 		}
@@ -132,7 +136,7 @@ static void cb1(void *s, size_t len, void *data)
 static void cb2(int c, void *data)
 {
 	num_rl_rows++;
-	rl_col = RL_TIMESTAMP;
+	rl_col = RL_TIMESTAMP; 	//reset column index to 0
 }
 
 // Callback function 3 -- called at the end of individual teros fields
@@ -141,18 +145,7 @@ static void cb3(void *s, size_t len, void *data)
 	float chr = 0;
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
-
-		if (t_col == T_TIMESTAMP)
-		{
-			/*
-			we don't necessarily know how many rows we'll be reading from the
-			teros, so we just update the timestamp each time, that way we always
-			send the latest one
-			*/
-			chr = strtol((char *)s, NULL, 10);
-			((sensor_data *)data)->timestamp = chr;
-		}
-		else if (t_col == MOISTURE)
+		if (t_col == MOISTURE)
 		{
 			chr = strtof((char *)s, NULL);
 			ITERATIVE_AVG(((sensor_data *)data)->moisture, chr, num_t_rows);
@@ -176,7 +169,7 @@ static void cb3(void *s, size_t len, void *data)
 static void cb4(int c, void *data)
 {
 	num_t_rows++;
-	t_col = T_TIMESTAMP;
+	t_col = T_TIMESTAMP; //reset column index to 0
 }
 
 static void read_config(char *cells, uint8_t *method)
@@ -209,7 +202,6 @@ static void read_config(char *cells, uint8_t *method)
 	{
 		error(EXIT_FAILURE, 0, "Invalid data transmission method");
 	}
-
 
 	// get cells belonging to logger
 	if (fgets(cells, 1024, fp) == NULL)
@@ -264,6 +256,10 @@ int main(int argc, char *argv[])
 		{
 			error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
 		}
+	}
+	else if (tmethod == ETHERNET)
+	{
+		char tmsg[BUF_LEN] = {0};
 	}
 
 	// create server for rocketlogger
@@ -338,7 +334,7 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			if (num_samples >= min_rl_samples && num_t_rows > 1)
+			if (num_samples >= min_rl_samples && num_t_rows >= 1)
 			{
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],
@@ -357,13 +353,13 @@ int main(int argc, char *argv[])
 				}
 				else if (tmethod == ETHERNET)
 				{
+					memset(tmsg, '\0', BUF_LEN);
 					// Send POST request to jlab server
-					char tmsg[BUF_LEN] = {0};
 					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
 								  " -H \"Cells: %s\" -H \"Device-Name: %s\""
-								  " -d \"%s\" jlab.ucsc.edu:8000",
+								  " -d \"%s\" jlab.ucsc.edu:8090",
 							cells, username, lora_msg);
-					printf("%s", tmsg);
+					printf("\n%s\n", tmsg);
 					system(tmsg);
 				}
 				else
@@ -374,7 +370,7 @@ int main(int argc, char *argv[])
 				ipc_close(rl_fd);
 				rl_fd = 0;
 
-				// clear all averaged fields to obtain new val	es in next loop
+				// clear all averaged fields to obtain new values in next loop
 				soil_data.rl_channel_1[VOLTAGE] = 0;
 				soil_data.rl_channel_1[CURRENT] = 0;
 				soil_data.rl_channel_2[VOLTAGE] = 0;
