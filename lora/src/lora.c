@@ -2,24 +2,14 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #define AT_TEST_HARNESS
-
-
-#define TX 1
-#define RX 2
-#define VERIFY_RXTX(mode, res, len) {\
-	if (res != len || res == -1){\
-		return (mode == TX)?(TX_ERROR):(RX_ERROR); \
-		}\
-	}
 	
-#define VERIFY_BUS(bus) if ((bus > 5) || (bus < 0)){return BAD_BUS;}
-
-
-//Ensure that string isn't too long
+//Generic function to send arbitrary payload
 int AT_SerialTransmit(int bus, char *data){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
+
 	int res = 0;
 	int len = strlen(data);
 	
@@ -28,37 +18,35 @@ int AT_SerialTransmit(int bus, char *data){
 		return ERROR;
 	}
 	//write data to uart bus
-	res = rc_uart_write(bus, (uint8_t*)data, len);
-	VERIFY_RXTX(TX, res , len);
+	res = rc_uart_write(bus, data, len);
+	if (res != len) return TX_ERROR;
 	
 	return SUCCESS;
 }
 
-int AT_SerialReceive(int bus, uint8_t buf[]){
-	VERIFY_BUS(bus);
+//Generic function to retrieve payload
+int AT_SerialReceive(int bus, char * buf){
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	int res = 0;
 	
-	if (rc_uart_bytes_available(bus) > 0){
-		res = rc_uart_read_line(bus, buf, MAX_PAYLOAD_LENGTH);
-		//unknown response length, so disregard length check in macro
-		VERIFY_RXTX(RX, res, res); 
-	} else{
-		return ERROR;
-	}
+	res = rc_uart_read_line(bus, buf, MAX_PAYLOAD_LENGTH);
+	//unknown response length, so disregard length check in macro
+	if (res < 0) return RX_ERROR;
 	
 	return SUCCESS;
 }
 
+//Sends a dummy message to LoRa module to verify connectivity
 int AT_TestConnection(int bus){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	int i;
-	uint8_t incoming[MAX_PAYLOAD_LENGTH] = {0};
+	char incoming[MAX_PAYLOAD_LENGTH] = {0};
 	
 	//send message "AT" to test connection with e5 module
 	if (AT_SerialTransmit(bus, "AT\n")){return TX_ERROR;}
 	
 	//e-5 module should return "+AT: OK"
-	char *resp = "+AT: OK"; //expected response
+	char resp[] = "+AT: OK"; //expected response
 	int len = strlen(resp);
 	if (AT_SerialReceive(bus, incoming)){return RX_ERROR;}
 		
@@ -73,9 +61,10 @@ int AT_TestConnection(int bus){
 	return SUCCESS;
 }
 
+//Retrieves current LoRaWAN version
 int AT_CheckVersion(int bus){
-	VERIFY_BUS(bus);
-	uint8_t incoming[MAX_PAYLOAD_LENGTH] = {0};
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
+	char incoming[MAX_PAYLOAD_LENGTH] = {0};
 
 	//Retrieve module firmware version
 	if (AT_SerialTransmit(bus, "AT+VER\n")){
@@ -87,7 +76,7 @@ int AT_CheckVersion(int bus){
 	}
 	
 	//tbd: instead of printing here, maybe place it in an argument buffer?
-	printf("Firmware version: %s\n", (char*)&incoming);
+	//printf("Firmware version: %s\n", incoming);
 	
 	//Retrieve LoRaWAN version
 	if (AT_SerialTransmit(bus, "AT+LW=VER\n")) {
@@ -102,10 +91,11 @@ int AT_CheckVersion(int bus){
 	return SUCCESS;
 }
 
+//Retrieves current module ID information: DevAddr, DevEui, AppEui
 int AT_CheckID(int bus){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	int i;
-	uint8_t incoming[MAX_PAYLOAD_LENGTH];
+	char incoming[MAX_PAYLOAD_LENGTH];
 	
 	if (AT_SerialTransmit(bus, "AT+ID\n")) {
 		return TX_ERROR;
@@ -123,9 +113,10 @@ int AT_CheckID(int bus){
 	return SUCCESS;
 }
 
+//Prints the module's current data rate settings
 int AT_CheckDataRate(int bus){
-	VERIFY_BUS(bus);
-	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
+	char buf[MAX_PAYLOAD_LENGTH] = {0};
 	//request device to send data rate
 	if (AT_SerialTransmit(bus, "AT+DR\n")){return TX_ERROR;}
 
@@ -141,14 +132,15 @@ int AT_CheckDataRate(int bus){
 	return SUCCESS;
 }
 
-int AT_SetNwkSKey(int bus, uint8_t *key){
-	VERIFY_BUS(bus);
+//Set module network session key -- required for application registration
+int AT_SetNwkSKey(int bus, long long key){
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that network session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
 	
 	//place string into buffer
-	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%s\"\n", key);
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=NWKSKEY, \"%lli\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
 	
 	//currently no check to see if correct response
@@ -157,14 +149,15 @@ int AT_SetNwkSKey(int bus, uint8_t *key){
 	return SUCCESS;
 }
 
-int AT_SetAppSKey(int bus, uint8_t *key){
-	VERIFY_BUS(bus);
+//Set application session key -- required for application registration
+int AT_SetAppSKey(int bus, long long key){
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	//need to ensure that application session key is proper length (16bytes)
 	
 	char data[SKEY_MSG_LEN];
 	
 	//place string into buffer
-	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%s\"\n", key);
+	snprintf(data, SKEY_MSG_LEN, "AT+KEY=APPSKEY, \"%lli\"\n", key);
 	if (AT_SerialTransmit(bus, data)){return TX_ERROR;}
 	
 	//currently no check to see if correct response
@@ -173,12 +166,13 @@ int AT_SetAppSKey(int bus, uint8_t *key){
 	return SUCCESS;
 }
 
+//Set module data rate
 int AT_SetDataRate(int bus, int rate){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	if ((rate<0) || (rate > 15)){return ERROR;}
 	
 	char data[MAX_PAYLOAD_LENGTH];
-	uint8_t buf[MAX_PAYLOAD_LENGTH] = {0};
+	char buf[MAX_PAYLOAD_LENGTH] = {0};
 	snprintf(data, 11, "AT+DR=dr%i\n", rate);
 	
 	if (AT_SerialTransmit(bus, data)){
@@ -197,8 +191,9 @@ int AT_SetDataRate(int bus, int rate){
 	return SUCCESS;
 }
 
+//Put LoRaWAN module into low power mode
 int AT_LowPower(int bus, int timeout){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	if (timeout<0)return ERROR;
 	
 	if (timeout){
@@ -211,8 +206,9 @@ int AT_LowPower(int bus, int timeout){
 	return SUCCESS;
 }
 
+//Send a generic string over LoRa module
 int AT_SendString(int bus, char *str){
-	VERIFY_BUS(bus);
+	if ((bus > 5) || (bus < 0)) return BAD_BUS;
 	char data[MAX_PAYLOAD_LENGTH] = {0};
 
 	if (snprintf(data, MAX_PAYLOAD_LENGTH, "AT+CMSG=\"%s\"\n", str) < 0){
@@ -228,30 +224,40 @@ int AT_SendString(int bus, char *str){
 	
 }
 
-int AT_Init(void){
+//Initialize LoRaWAN module
+int AT_Init(int bus, int baud, int timeout){
+	char init_msg[MAX_PAYLOAD_LENGTH] = {0};
+	sprintf(init_msg, "stty -F /dev/ttyO%i 9600 cs8 -cstopb -parenb", bus);
+	system(init_msg);
 	
-	//config-pin only works on certain debian versions. need to enable uart w/o
-	// system("config-pin P9.21 uart\n");
-	// system("config-pin P9.22 uart\n");
-	system("stty -F /dev/ttyS2 9600 cs8 -cstopb -parenb\n");
-	
-	if (rc_uart_init(UART2, 9600, 1, CAN_EN, SB, PAR) == -1){
+	if (rc_uart_init(bus, baud, timeout, CAN_EN, SB, PAR) == -1){
 		printf("Error in UART2 initialization.\n");
-		// return ERROR;
+		return ERROR;
 	}
-	
-	if (AT_TestConnection(UART2)){
+	//if you have a serial terminal open (say you want to directly
+	//read the module's responses, you won't be able to read them from
+	//this program. meaning you might enter this if statement, but it
+	//actually is connected.)
+	if (AT_TestConnection(bus)){
 		printf("Beaglebone not connected to E5 module.\n");
-		// return ERROR;
 	}
-	//ADR will automatically set data rates, but we want to stick with DR1
+	//ADR will automatically set data rates, but we want to stick with DR2
 	//Not necessary for initialization, up to user
-	if (AT_SerialTransmit(UART2, "AT+ADR=OFF\n") == -1){
+	if (AT_SerialTransmit(bus, "AT+ADR=OFF\n") == -1){
 		printf("Error setting ADR function.\n");
+		return ERROR;
 	}
-	
-	if (AT_SetDataRate(UART2, 2) == -1){
+	//I don't like having the sleeps here, but if you send two commands
+	//too quickly, they'll essentially merge and both will fail.
+	sleep(1);
+	if (AT_SerialTransmit(bus, "AT+CH=NUM,8-15,64\n") == -1){
+		printf("Error selecting channels.\n");
+		return ERROR;
+	}
+	sleep(1);
+	if (AT_SetDataRate(bus, 2) == -1){
 		printf("Error setting datarate.\n");
+		return ERROR;
 	}
 	
 	return SUCCESS;

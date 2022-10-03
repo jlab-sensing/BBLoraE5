@@ -55,3 +55,4 @@ dkms.conf
 # Misc
 rl_client/
 teros_client/
+.vscode

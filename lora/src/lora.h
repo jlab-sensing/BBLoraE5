@@ -5,6 +5,7 @@
 #include "uart.h"
 
 #define UART2 2 //uart2
+#define UART5 5
 #define BAUD96 9600
 #define TIMEOUT 1 //1SEC
 #define CAN_EN 0 //canonical mode enable
@@ -29,16 +30,16 @@ enum error_codes {
 
 // int Grove_Init(int bus, int baud, int timeout, int stop_bits, int parity);
 
-int AT_Init(void);
+int AT_Init(int bus, int baud, int timeout);
 int AT_SerialTransmit(int bus, char *data);
-int AT_SerialReceive(int bus, uint8_t buf[]);
+int AT_SerialReceive(int bus, char * buf);
 int AT_TestConnection(int bus);
 int AT_CheckVersion(int bus);
 int AT_CheckID(int bus);
 int AT_CheckDataRate(int bus);
-int AT_SetNwkSKey(int bus, uint8_t *key);
+int AT_SetNwkSKey(int bus, long long key);
 int AT_GetNwkSKey(int bus);
-int AT_SetAppSKey(int bus, uint8_t *key);
+int AT_SetAppSKey(int bus, long long key);
 int AT_GetAppSKey(int bus);
 int AT_SetDataRate(int bus, int rate);
 int AT_LowPower(int bus, int timeout);

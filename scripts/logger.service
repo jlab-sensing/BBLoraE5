@@ -3,7 +3,7 @@ Description=MFC Logging Utility
 
 [Service]
 Type=simple
-ExecStart=/home/rocketlogger/.bin/logger.sh
+ExecStart=/usr/bin/logger
 Restart=always
 
 [Install]

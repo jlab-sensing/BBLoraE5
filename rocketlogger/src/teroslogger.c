@@ -232,6 +232,7 @@ int main(int argc, char** argv){
     }
 
     // Open socket
+	printf("Opening teros socket\n");
     int socket;
     if (socket_file) {
         do { 
@@ -279,7 +280,7 @@ int main(int argc, char** argv){
             }
 
             // Stop reading on line ending
-            if (*inbuf == '\n') {
+            if (*inbuf == '\r') {
                 ++inbuf;
                 break;
             }
