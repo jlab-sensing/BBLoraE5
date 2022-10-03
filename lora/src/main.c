@@ -136,7 +136,7 @@ static void cb1(void *s, size_t len, void *data)
 static void cb2(int c, void *data)
 {
 	num_rl_rows++;
-	rl_col = RL_TIMESTAMP; 	//reset column index to 0
+	rl_col = RL_TIMESTAMP; // reset column index to 0
 }
 
 // Callback function 3 -- called at the end of individual teros fields
@@ -169,7 +169,7 @@ static void cb3(void *s, size_t len, void *data)
 static void cb4(int c, void *data)
 {
 	num_t_rows++;
-	t_col = T_TIMESTAMP; //reset column index to 0
+	t_col = T_TIMESTAMP; // reset column index to 0
 }
 
 static void read_config(char *cells, uint8_t *method)
@@ -245,6 +245,7 @@ int main(int argc, char *argv[])
 
 	char cells[NAME_BUF]; // microbial fuel cells belonging to active logger
 	uint8_t tmethod;
+	char tmsg[BUF_LEN] = {0};
 
 	// retrieve cell names and tx method
 	read_config(cells, &tmethod);
@@ -256,10 +257,6 @@ int main(int argc, char *argv[])
 		{
 			error(EXIT_FAILURE, 0, "Error initializing LoRaWAN module");
 		}
-	}
-	else if (tmethod == ETHERNET)
-	{
-		char tmsg[BUF_LEN] = {0};
 	}
 
 	// create server for rocketlogger
