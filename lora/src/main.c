@@ -41,6 +41,12 @@
 
 #define ITERATIVE_AVG(var, inp, samp) var += (inp - var) / samp;
 
+#define RL_CONNECT 0
+#define T_GATHER 1
+#define RL_GATHER 2
+#define TRANSMIT 3
+
+
 /*******************************************************************************
  *
  * DATA TYPES/GLOBAL VARIABLES
@@ -203,6 +209,7 @@ static void read_config(char *cells, uint8_t *method)
 	{
 		error(EXIT_FAILURE, 0, "Invalid data transmission method");
 	}
+
 
 	// get cells belonging to logger
 	if (fgets(cells, 1024, fp) == NULL)
