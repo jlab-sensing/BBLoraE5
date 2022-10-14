@@ -27,11 +27,12 @@ if [[ ! -d $DATA_PATH ]]; then
 fi
 
 lora $TEROS_SOCKET $RL_SOCKET $NUM_SAMPLES &
+LORA_PID=$!
 # Sleep is here because we need to configure lora settings, and that can
 # take some time. We want to make sure it finishes config before it moves on
 sleep 5s
 teroslogger -q -s $TEROS_SOCKET /dev/ttyACM0 &
-
+TEROS_PID=$!
 
 while true; do
 	TIMESTAMP=`date +"%Y-%m-%d_%T"`
