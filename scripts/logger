@@ -2,8 +2,8 @@
 
 # Cleanup function to close forked processes
 cleanup(){
-	if [ -v LORA_PID]; then kill $LORA_PID; fi
-	if [ -v TEROS_PID]; then kill $TEROS_PID; fi
+	if [ -v LORA_PID ]; then kill $LORA_PID; fi
+	if [ -v TEROS_PID ]; then kill $TEROS_PID; fi
 	exit;
 }
 
