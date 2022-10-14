@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Cleanup function to close forked processes
+cleanup(){
+	if [ -v LORA_PID]; then kill $LORA_PID; fi
+	if [ -v TEROS_PID]; then kill $TEROS_PID; fi
+	exit;
+}
+
+# Trap SIGINT to properly end script
+trap cleanup INT
+
 # Path to rocketlogger data socket
 RL_SOCKET=/tmp/rlstream.socket
 # Path to teros data socket
