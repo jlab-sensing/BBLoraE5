@@ -82,6 +82,15 @@ typedef struct sensor_data
 	int conductivity;
 } sensor_data;
 
+typedef struct config_info
+{
+	char cellNames[1024];
+	char *username;
+	uint8_t method;
+	int num_Coeffs;
+	float coeff[1024];
+} config_info;
+
 static int num_rl_rows = 0;
 static int num_t_rows = 0;
 static int num_samples = 0;
@@ -94,123 +103,11 @@ static teros_fields t_col = T_TIMESTAMP;
  *
  ******************************************************************************/
 
-// Callback function 1 -- called after each individual field is processed by parser
-static void cb1(void *s, size_t len, void *data)
-{
-	int chr = 0;
-
-	chr = strtol((char *)s, NULL, 10);
-
-	// num_samples remains zero until it reaches the end of the file header
-	if (num_rl_rows >= RL_HEADER_LENGTH)
-	{
-		/* The total number of samples is increased when parsing the header
-		 * because each header line triggers cb2, so we subtract the line length
-		 * of the header to get the correct number of valid samples*/
-		num_samples = num_rl_rows - (RL_HEADER_LENGTH - 1);
-		if (rl_col == RL_TIMESTAMP)
-		{
-			((sensor_data *)data)->timestamp = chr;
-		}
-		else if (rl_col == V1)
-		{
-			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_1[VOLTAGE], chr, num_samples);
-		}
-		else if (rl_col == I1L)
-		{
-			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_1[CURRENT], chr, num_samples);
-		}
-		else if (rl_col == V2)
-		{
-			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_2[VOLTAGE], chr, num_samples);
-		}
-		else if (rl_col == I2L)
-		{
-			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_2[CURRENT], chr, num_samples);
-		}
-	}
-	rl_col++;
-}
-
-// Callback function 2 -- called at the end of each rocketlogger row
-static void cb2(int c, void *data)
-{
-	num_rl_rows++;
-	rl_col = RL_TIMESTAMP; // reset column index to 0
-}
-
-// Callback function 3 -- called at the end of individual teros fields
-static void cb3(void *s, size_t len, void *data)
-{
-	float chr = 0;
-	if (num_t_rows >= T_HEADER_LENGTH)
-	{
-		if (t_col == MOISTURE)
-		{
-			chr = strtof((char *)s, NULL);
-			ITERATIVE_AVG(((sensor_data *)data)->moisture, chr, num_t_rows);
-		}
-		else if (t_col == TEMP)
-		{
-			chr = strtof((char *)s, NULL);
-			ITERATIVE_AVG(((sensor_data *)data)->temp, chr, num_t_rows);
-		}
-		else if (t_col == CONDUCTIVITY)
-		{
-			chr = strtol((char *)s, NULL, 10);
-			ITERATIVE_AVG(((sensor_data *)data)->conductivity, chr, num_t_rows);
-		}
-	}
-
-	t_col++;
-}
-
-// Callback function 4 -- called at the end of each teros row
-static void cb4(int c, void *data)
-{
-	num_t_rows++;
-	t_col = T_TIMESTAMP; // reset column index to 0
-}
-
-static void read_config(char *cells, uint8_t *method)
-{
-	FILE *fp;
-	fp = fopen("rl.conf", "r");
-	char buf[1024];
-
-	if (fp == NULL)
-	{
-		error(EXIT_FAILURE, 0, "Unable to open config file");
-	}
-
-	// get tx method
-	if (fgets(buf, 1024, fp) == NULL)
-	{
-		error(EXIT_FAILURE, 0, "Unable to retrieve transmission method");
-	}
-	buf[strcspn(buf, "\n")] = 0; // remove newline character
-
-	if (!strcmp(buf, "lora"))
-	{
-		*method = 0;
-	}
-	else if (!strcmp(buf, "ethernet"))
-	{
-		*method = 1;
-	}
-	else
-	{
-		error(EXIT_FAILURE, 0, "Invalid data transmission method");
-	}
-
-	// get cells belonging to logger
-	if (fgets(cells, 1024, fp) == NULL)
-	{
-		error(EXIT_FAILURE, 0, "Unable to retrieve cell names");
-	}
-	cells[strcspn(cells, "\n")] = 0; // remove newline character
-	fclose(fp);
-}
+static void cb1(void *s, size_t len, void *data);
+static void cb2(int c, void *data);
+static void cb3(void *s, size_t len, void *data);
+static void cb4(int c, void *data);
+static void read_config(struct config_info *id)
 
 /*******************************************************************************
  *
@@ -239,18 +136,12 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Invalid number of rocketlogger samples");
 	}
 
-	// retrieve current user name
-	// I'd like to keep this under ETHERNET, but the compiler throws an error
-	char *username = getenv("LOGNAME");
+	static config_info cellInfo = {0};
+	
+	cellInfo.username = getenv("LOGNAME");
+	read_config(&cellInfo);
 
-	char cells[NAME_BUF]; // microbial fuel cells belonging to active logger
-	uint8_t tmethod;
-	char tmsg[BUF_LEN] = {0};
-
-	// retrieve cell names and tx method
-	read_config(cells, &tmethod);
-
-	if (tmethod == LORA)
+	if (cellInfo.method == LORA)
 	{
 		// initialize UART bus for lora
 		if (AT_Init(UART5, BAUD96, TIMEOUT))
@@ -340,7 +231,7 @@ int main(int argc, char *argv[])
 
 				printf("Payload: %s\n", lora_msg);
 
-				if (tmethod == LORA)
+				if (cellInfo.method == LORA)
 				{
 					// Send data samples to LoRaWAN gateway
 					if (AT_SendString(UART5, lora_msg))
@@ -348,14 +239,14 @@ int main(int argc, char *argv[])
 						error(EXIT_FAILURE, 0, "Error sending LoRa packet");
 					}
 				}
-				else if (tmethod == ETHERNET)
+				else if (cellInfo.method == ETHERNET)
 				{
 					memset(tmsg, '\0', BUF_LEN);
 					// Send POST request to jlab server
 					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
 								  " -H \"Cells: %s\" -H \"Device-Name: %s\""
 								  " -d \"%s\" jlab.ucsc.edu:8090",
-							cells, username, lora_msg);
+							cellInfo.cellNames, cellInfo.username, lora_msg);
 					printf("\n%s\n", tmsg);
 					system(tmsg);
 				}
@@ -393,4 +284,153 @@ int main(int argc, char *argv[])
 	csv_free(&p2);
 
 	exit(EXIT_SUCCESS);
+}
+
+/*******************************************************************************
+ *
+ * FUNCTION DEFINITIONS
+ *
+ ******************************************************************************/
+
+// Callback function 1 -- called after each individual field is processed by parser
+static void cb1(void *s, size_t len, void *data)
+{
+	int chr = 0;
+
+	chr = strtol((char *)s, NULL, 10);
+
+	// num_samples remains zero until it reaches the end of the file header
+	if (num_rl_rows >= RL_HEADER_LENGTH)
+	{
+		/* The total number of samples is increased when parsing the header
+		 * because each header line triggers cb2, so we subtract the line length
+		 * of the header to get the correct number of valid samples*/
+		num_samples = num_rl_rows - (RL_HEADER_LENGTH - 1);
+		if (rl_col == RL_TIMESTAMP)
+		{
+			((sensor_data *)data)->timestamp = chr;
+		}
+		else if (rl_col == V1)
+		{
+			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_1[VOLTAGE], chr, num_samples);
+		}
+		else if (rl_col == I1L)
+		{
+			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_1[CURRENT], chr, num_samples);
+		}
+		else if (rl_col == V2)
+		{
+			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_2[VOLTAGE], chr, num_samples);
+		}
+		else if (rl_col == I2L)
+		{
+			ITERATIVE_AVG(((sensor_data *)data)->rl_channel_2[CURRENT], chr, num_samples);
+		}
+	}
+	rl_col++;
+}
+
+// Callback function 2 -- called at the end of each rocketlogger row
+static void cb2(int c, void *data)
+{
+	num_rl_rows++;
+	rl_col = RL_TIMESTAMP; // reset column index to 0
+}
+
+// Callback function 3 -- called at the end of individual teros fields
+static void cb3(void *s, size_t len, void *data)
+{
+	float chr = 0;
+	if (num_t_rows >= T_HEADER_LENGTH)
+	{
+		if (t_col == MOISTURE)
+		{
+			chr = strtof((char *)s, NULL);
+			ITERATIVE_AVG(((sensor_data *)data)->moisture, chr, num_t_rows);
+		}
+		else if (t_col == TEMP)
+		{
+			chr = strtof((char *)s, NULL);
+			ITERATIVE_AVG(((sensor_data *)data)->temp, chr, num_t_rows);
+		}
+		else if (t_col == CONDUCTIVITY)
+		{
+			chr = strtol((char *)s, NULL, 10);
+			ITERATIVE_AVG(((sensor_data *)data)->conductivity, chr, num_t_rows);
+		}
+	}
+
+	t_col++;
+}
+
+// Callback function 4 -- called at the end of each teros row
+static void cb4(int c, void *data)
+{
+	num_t_rows++;
+	t_col = T_TIMESTAMP; // reset column index to 0
+}
+
+// Obtains config info -- cellnames, tx method, calibration coefficients
+static void read_config(struct config_info *id)
+{
+	FILE *fp;
+	fp = fopen("rl.conf", "r");
+	char buf[1024];
+
+	if (fp == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Unable to open config file");
+	}
+
+	// get tx method
+	if (fgets(buf, 1024, fp) == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Unable to retrieve transmission method");
+	}
+	buf[strcspn(buf, "\n")] = 0; // remove newline character
+
+	if (!strcmp(buf, "lora"))
+	{
+		id->method = 0;
+	}
+	else if (!strcmp(buf, "ethernet"))
+	{
+		id->method = 1;
+	}
+	else
+	{
+		error(EXIT_FAILURE, 0, "Invalid data transmission method");
+	}
+
+	// get cells belonging to logger
+	if (fgets(id->cellNames, 1024, fp) == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Unable to retrieve cell names");
+	}
+	id->cellNames[strcspn(id->cellNames, "\n")] = 0; // remove newline character
+
+	// get calibration coefficients
+	if (fgets(buf, 1024, fp) == NULL)
+	{
+		error(EXIT_FAILURE, 0, "Unable to retrieve cell names");
+	}
+	char *pend, *check;
+	/*strtof returns 0 if the conversion fails, which makes it impossible to
+	determine if the coefficient is 0, or if it failed. Since it updates our
+	second argument to the first char after the number, we can check to see
+	if the memory location has changed since the last call.*/
+	id->coeff[id->num_Coeffs] = strtof(buf, &pend);
+	id->num_Coeffs++;
+	do
+	{
+		check = pend;
+		id->coeff[id->num_Coeffs] = strtof(pend, &pend);
+		id->num_Coeffs++;
+
+	} while (pend != check);
+	/*it'll add an extra number to num_Coeffs since it updates before we check
+	for failure, so take 1 off when it leaves.*/
+	id->num_Coeffs--; 
+
+	fclose(fp);
 }
