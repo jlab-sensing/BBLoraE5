@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <error.h>
 #include <errno.h>
+#include <math.h>
 #include "lora.h"
 #include "csv.h"
 #include "ipc.h"
@@ -107,7 +108,8 @@ static void cb1(void *s, size_t len, void *data);
 static void cb2(int c, void *data);
 static void cb3(void *s, size_t len, void *data);
 static void cb4(int c, void *data);
-static void read_config(struct config_info *id)
+static void read_config(struct config_info *id);
+static float raw_to_vwc(struct config_info *id, float raw_data);
 
 /*******************************************************************************
  *
@@ -137,9 +139,10 @@ int main(int argc, char *argv[])
 	}
 
 	static config_info cellInfo = {0};
-	
+
 	cellInfo.username = getenv("LOGNAME");
 	read_config(&cellInfo);
+	char tmsg[BUF_LEN] = {0};
 
 	if (cellInfo.method == LORA)
 	{
@@ -224,6 +227,7 @@ int main(int argc, char *argv[])
 
 			if (num_samples >= min_rl_samples && num_t_rows >= 1)
 			{
+				soil_data.moisture = raw_to_vwc(&cellInfo, soil_data.moisture);
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],
 						soil_data.rl_channel_2[VOLTAGE], soil_data.rl_channel_2[CURRENT],
@@ -430,7 +434,19 @@ static void read_config(struct config_info *id)
 	} while (pend != check);
 	/*it'll add an extra number to num_Coeffs since it updates before we check
 	for failure, so take 1 off when it leaves.*/
-	id->num_Coeffs--; 
+	id->num_Coeffs--;
 
 	fclose(fp);
+}
+
+static float raw_to_vwc(struct config_info *id, float raw_data)
+{
+	float retVal = 0;
+	int i = 0;
+
+	for (i = 0; i < id->num_Coeffs; i++)
+	{
+		retVal += id->coeff[i] * pow((double)raw_data, (double)i);
+	}
+	return retVal;
 }
