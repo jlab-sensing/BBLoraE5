@@ -78,8 +78,8 @@ typedef struct sensor_data
 	int timestamp;
 	int rl_channel_1[2];
 	int rl_channel_2[2];
-	float moisture;
-	float temp;
+	double moisture;
+	double temp;
 	int conductivity;
 } sensor_data;
 
@@ -89,7 +89,7 @@ typedef struct config_info
 	char *username;
 	uint8_t method;
 	int num_Coeffs;
-	float coeff[1024];
+	double coeff[1024];
 } config_info;
 
 static int num_rl_rows = 0;
@@ -109,7 +109,7 @@ static void cb2(int c, void *data);
 static void cb3(void *s, size_t len, void *data);
 static void cb4(int c, void *data);
 static void read_config(struct config_info *id);
-static float raw_to_vwc(struct config_info *id, float raw_data);
+static double raw_to_vwc(struct config_info *id, double raw_data);
 
 /*******************************************************************************
  *
@@ -344,7 +344,7 @@ static void cb2(int c, void *data)
 // Callback function 3 -- called at the end of individual teros fields
 static void cb3(void *s, size_t len, void *data)
 {
-	float chr = 0;
+	double chr = 0;
 	if (num_t_rows >= T_HEADER_LENGTH)
 	{
 		if (t_col == MOISTURE)
@@ -439,14 +439,14 @@ static void read_config(struct config_info *id)
 	fclose(fp);
 }
 
-static float raw_to_vwc(struct config_info *id, float raw_data)
+static double raw_to_vwc(struct config_info *id, double raw_data)
 {
-	float retVal = 0;
+	double retVal = 0;
 	int i = 0;
 
 	for (i = 0; i < id->num_Coeffs; i++)
 	{
-		retVal += id->coeff[i] * pow((double)raw_data, (double)i);
+		retVal += id->coeff[i] * pow(raw_data, (double)i);
 	}
 	return retVal;
 }
