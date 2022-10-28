@@ -448,5 +448,5 @@ static double raw_to_vwc(struct config_info *id, double raw_data)
 	{
 		retVal += id->coeff[i] * pow(raw_data, (double)i);
 	}
-	return retVal;
+	return retVal*100;
 }
