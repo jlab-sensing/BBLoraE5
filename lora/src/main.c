@@ -88,8 +88,6 @@ typedef struct config_info
 	char cellNames[1024];
 	char *username;
 	uint8_t method;
-	int num_Coeffs;
-	double coeff[1024];
 } config_info;
 
 static int num_rl_rows = 0;
@@ -227,7 +225,6 @@ int main(int argc, char *argv[])
 
 			if (num_samples >= min_rl_samples && num_t_rows >= 1)
 			{
-				soil_data.moisture = raw_to_vwc(&cellInfo, soil_data.moisture);
 				sprintf(lora_msg, "%i,%i,%i,%i,%i,%f,%f,%i", soil_data.timestamp,
 						soil_data.rl_channel_1[VOLTAGE], soil_data.rl_channel_1[CURRENT],
 						soil_data.rl_channel_2[VOLTAGE], soil_data.rl_channel_2[CURRENT],
@@ -374,7 +371,7 @@ static void cb4(int c, void *data)
 	t_col = T_TIMESTAMP; // reset column index to 0
 }
 
-// Obtains config info -- cellnames, tx method, calibration coefficients
+// Obtains config info -- hostname, cellnames, tx method,
 static void read_config(struct config_info *id)
 {
 	FILE *fp;
@@ -413,40 +410,5 @@ static void read_config(struct config_info *id)
 	}
 	id->cellNames[strcspn(id->cellNames, "\n")] = 0; // remove newline character
 
-	// get calibration coefficients
-	if (fgets(buf, 1024, fp) == NULL)
-	{
-		error(EXIT_FAILURE, 0, "Unable to retrieve cell names");
-	}
-	char *pend, *check;
-	/*strtof returns 0 if the conversion fails, which makes it impossible to
-	determine if the coefficient is 0, or if it failed. Since it updates our
-	second argument to the first char after the number, we can check to see
-	if the memory location has changed since the last call.*/
-	id->coeff[id->num_Coeffs] = strtof(buf, &pend);
-	id->num_Coeffs++;
-	do
-	{
-		check = pend;
-		id->coeff[id->num_Coeffs] = strtof(pend, &pend);
-		id->num_Coeffs++;
-
-	} while (pend != check);
-	/*it'll add an extra number to num_Coeffs since it updates before we check
-	for failure, so take 1 off when it leaves.*/
-	id->num_Coeffs--;
-
 	fclose(fp);
-}
-
-static double raw_to_vwc(struct config_info *id, double raw_data)
-{
-	double retVal = 0;
-	int i = 0;
-
-	for (i = 0; i < id->num_Coeffs; i++)
-	{
-		retVal += id->coeff[i] * pow(raw_data, (double)i);
-	}
-	return retVal*100;
 }
