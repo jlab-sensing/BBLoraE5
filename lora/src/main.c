@@ -107,7 +107,6 @@ static void cb2(int c, void *data);
 static void cb3(void *s, size_t len, void *data);
 static void cb4(int c, void *data);
 static void read_config(struct config_info *id);
-static double raw_to_vwc(struct config_info *id, double raw_data);
 
 /*******************************************************************************
  *
@@ -136,7 +135,7 @@ int main(int argc, char *argv[])
 		error(EXIT_FAILURE, 0, "Invalid number of rocketlogger samples");
 	}
 
-	static config_info cellInfo = {0};
+	static config_info cellInfo = {{0}, 0, 0};
 
 	cellInfo.username = getenv("LOGNAME");
 	read_config(&cellInfo);
@@ -165,7 +164,7 @@ int main(int argc, char *argv[])
 	char buf[BUF_LEN] = {0};
 	char lora_msg[MAX_PAYLOAD_LENGTH] = {0};
 
-	sensor_data soil_data = {0};
+	sensor_data soil_data = {0, {0}, {0}, 0 ,0 ,0};
 
 	struct csv_parser p;
 	struct csv_parser p2;
