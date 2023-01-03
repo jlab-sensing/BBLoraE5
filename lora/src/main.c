@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
 					// Send POST request to jlab server
 					sprintf(tmsg, "curl -X POST -H \"Content-Type: mfc-data\""
 								  " -H \"Cells: %s\" -H \"Device-Name: %s\""
-								  " -d \"%s\" jlab.ucsc.edu:8090",
+								  " -d \"%s\" https:\/\/dirtviz.jlab.ucsc.edu/integrations/http-api",
 							cellInfo.cellNames, cellInfo.username, lora_msg);
 					printf("\n%s\n", tmsg);
 					system(tmsg);
