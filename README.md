@@ -3,28 +3,31 @@ Overview
 
 DirtViz is a project intended to facilitate the evaluation of microbial fuel cells. Because they're typically placed outside of lab settings,
 it's difficult to collect data from cells without going to their physical location and taking data from an SD card. As an alternative to this, we've 
-implemented LoRaWAN to broadcast data collected by evaluation devices in the field. The data is received by a LoRaWAN gateway, which forwards it to our network server (we use [chirpstack](https://www.chirpstack.io/), but there are alternatives such as [The Things Network (TTN)](https://www.thethingsnetwork.org/)), where the payload is processed and then uploaded to a database. We then plot this data to provide an easily understood,
-graphical representation of the MFC's performance.
+implemented LoRaWAN to broadcast data collected by evaluation devices in the field. The data is received by a LoRaWAN gateway, which forwards it to our network server (we use [chirpstack](https://www.chirpstack.io/)), where the payload is processed and then uploaded to a database. We then plot this data to provide an easily understood, graphical representation of the MFC's performance.
 
 Configuring the Rocketloggers
 ---------------------------------------------------------------------------------------------------
 
-Because of how heavily multiplexed the Rocketlogger pins are, the only UART bus that we can use is UART5.  Type `ls -l /dev/ttyO*`, and it should only list one line:
+Because of how heavily multiplexed the Rocketlogger pins are, the only UART bus that we can use is UART5. By default, the beaglebones don't come with UART5 enabled which means it has to be set up manually. Type `ls -l /dev/ttyO*`, and it should only list one line:
 ```
 crw-rw---- 1 root tty  247, date time /dev/ttyO0
 ```
 
-By default, the beaglebones don't come with UART5 enabled which means it has to be set up manually. To enable UART5, type `sudo nano /boot/uEnv.txt`. It'll display a text file that should start with a link to some documentation and the name of the rocketlogger -- from there, add a line at the bottom saying
+To enable UART5, type `sudo nano /boot/uEnv.txt`. It'll display a text file that should start with a link to some documentation and the name of the rocketlogger -- from there, add a line at the bottom saying
 ```
 cape_enable=capemgr.enable_partno=BB-UART5
 ```
 
 If you list the ttyO* devices again again, it should have added another line which signals that ttyO5 has been enabled.
 
-AT_Init() in lora.c will configure the bus to 9600-8-n-1, but that can be done manually with 
-```
-stty -F /dev/ttyO# 9600 cs8 -cstopb -parenb
-```
+Running the logging program
+----------------------------------------------------------------------------------------------------
+
+Before you collect any data, you must set some configurations. First, set the number of samples to take inside of the "logger" script (located in the scripts folder). The Rocketlogger collects 1 sample per second, and the Teros sensor 1 sample per 10 seconds. When you set the variable `NUM_SAMPLES`, it refers to the number of Rocketlogger samples. The default is 30 (I don't recommend going lower than this), though I recommend setting it to several minutes.
+
+Enter `rl.conf` and set the data transmission method (simply "ethernet" or "lora") and cell names. Default is ethernet.
+
+With the configurations set, build the project with `sudo ./install.sh`. Use a screen session so that you can detach from the program with `screen -S session-name`. Run the program with the "logger" script, then when you're ready to leave, hit `ctrl-a` then `ctrl-d`, and you can log out with the program still running.
 
 LoRaWAN
 ----------------------------------------------------------------------------------------------------
