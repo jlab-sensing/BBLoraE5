@@ -2,14 +2,24 @@
 
 from argparse import ArgumentParser
 
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 if __name__ == "__main__":
     parser = ArgumentParser(description="Remotely upload MFC data to Dirtviz")
     parser.add_argument(
         "-c", "--config",
-        default="/etc/dirtviz/conifg.yaml",
+        default="/etc/dirtviz/config.yaml",
         help="Path to config file"
     )
 
     args = parser.parse_args()
 
-    print(args)
+    # Read config file
+    with open(args.config) as s:
+        data = load(s, Loader=Loader)
+
+    print(data)

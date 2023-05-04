@@ -1,0 +1,21 @@
+# Name of cell connected to channels V1 and I1
+name1: test1
+# Name of cell connected to channels V2 and I2
+name2: test2
+
+# Name of cells being measured by TEROS-12 Soil Moisture Sensor. Leaving this
+# key empty disables uploading TEROS-12 data.
+teros:
+  - test1
+  - test2
+
+# Interval in seconds between uploads
+interval: 3600
+
+# Upload method. Either "lora" or "ethernet"
+method: lora
+
+# Serial port connected to LoRa module
+lora_port: /dev/ttyUSB0
+# Serial port connected to Arduino monitoring TEROS-12 sensor
+teros_port: /dev/ttyUSB1
