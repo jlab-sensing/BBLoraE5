@@ -3,6 +3,7 @@
 import pdb
 
 from argparse import ArgumentParser
+from time import sleep
 from pprint import pprint
 
 from yaml import load, dump
@@ -48,10 +49,35 @@ def cli():
 
     # Create upload method
     if (config["method"] == "lora"):
-        lora = Lora()
+        uploader = Lora()
     else:
         error = f"{config['method']} upload method not supported"
         raise NotImplementedError(error)
+
+    # Initialize transmit buffer
+    buf = []
+
+    # Loop forever
+    while True:
+        # Add Rocketlogger data to buffer
+        for d in rl.measure():
+            buf.append(d)
+
+        # Add TEROS-12 data to buffer
+        if ("teros" in config):
+            for d in t12.measure():
+                buf.append()
+
+        # Send everything in buffer
+        for d in buf:
+            uploader.send(d)
+
+        # Clear buffer after transmit
+        buf.clear()
+
+        # Sleep for a given number of seconds    
+        sleep(config["interval"])
+
 
 if __name__ == "__main__":
     cli()
