@@ -4,7 +4,7 @@ class Teros12:
     """
 
     def __init__(self, port, baud=9600):
-        """Initialize serial connection to Arduino
+        """Opens serial connection to Arduino
 
         Parameters
         ----------- 
