@@ -23,13 +23,15 @@ class Teros12:
         pass
 
 
-    def measure(self) -> list:
-        """Take measurement from TEROS-12
+    def measure(self) -> dict:
+        """Take measurement from TEROS-12.
         
         Returns
         -------
-        list
-            List of measurements in the following format 
+        dict
+            Key value pair of measurements from each soil moisture senor. The
+            keys are the sensorId from each individually connected TEROS-12
+            sensor.
         """
 
         pass
