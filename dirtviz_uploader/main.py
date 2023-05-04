@@ -17,7 +17,7 @@ from .teros12 import Teros12
 from .lora import Lora
 
 def cli():
-    """Processes CLI interface"""
+    """CLI Interface"""
 
     parser = ArgumentParser(description="Remotely upload MFC data to Dirtviz")
     parser.add_argument(
