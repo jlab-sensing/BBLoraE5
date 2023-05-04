@@ -1,0 +1,2 @@
+class Rocketlogger:
+    pass

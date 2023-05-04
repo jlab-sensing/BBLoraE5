@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import pdb
+
 from argparse import ArgumentParser
 from pprint import pprint
 
@@ -8,6 +10,10 @@ try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
+
+from .rocketlogger import Rocketlogger
+from .teros12 import Teros12
+from .lora import Lora
 
 def cli():
     """Processes CLI interface"""
@@ -20,7 +26,7 @@ def cli():
     )
     parser.add_argument(
         "-c", "--config",
-        default="/etc/dirtviz/config.yaml",
+        required=True,
         help="Path to config file"
     )
 
@@ -28,11 +34,24 @@ def cli():
 
     # Read config file
     with open(args.config) as s:
-        data = load(s, Loader=Loader)
+        config = load(s, Loader=Loader)
 
     if (args.verbose > 0):
-        pprint(data)
+        pprint(config)
 
+    # Create Rocketlogger
+    rl = Rocketlogger()
+
+    # Create TEROS-12    
+    if ("teros" in config): 
+        t12 = Teros12()
+
+    # Create upload method
+    if (config["method"] == "lora"):
+        lora = Lora()
+    else:
+        error = f"{config['method']} upload method not supported"
+        raise NotImplementedError(error)
 
 if __name__ == "__main__":
     cli()
