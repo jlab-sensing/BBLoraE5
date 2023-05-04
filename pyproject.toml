@@ -1,12 +1,15 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["dirtviz_uploader"]
 
 [project]
 name = "rocketlogger-dirtviz-uploader"
 version = "0.0.1"
 authors = [
-  { name="Example Author", email="author@example.com" },
+  { name="John Madden", email="jmadden173@pm.me" },
 ]
 description = "A small example package"
 readme = "README.md"
@@ -15,7 +18,5 @@ dependencies = [
 	"pyyaml",
 ]
 
-[project.optional_dependencies]
-dev = [
-	"pip-tools",
-]
+[project.scripts]
+uploader = "dirtviz_uploader.main:cli"

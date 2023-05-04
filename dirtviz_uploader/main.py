@@ -9,7 +9,9 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-if __name__ == "__main__":
+def cli():
+    """Processes CLI interface"""
+
     parser = ArgumentParser(description="Remotely upload MFC data to Dirtviz")
     parser.add_argument(
         "-v", "--verbose",
@@ -30,3 +32,7 @@ if __name__ == "__main__":
 
     if (args.verbose > 0):
         pprint(data)
+
+
+if __name__ == "__main__":
+    cli()
