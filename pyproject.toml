@@ -3,8 +3,19 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "Rocketlogger Dirtviz Uploader"
-version = "2.0.0"
+name = "rocketlogger-dirtviz-uploader"
+version = "0.0.1"
+authors = [
+  { name="Example Author", email="author@example.com" },
+]
+description = "A small example package"
+readme = "README.md"
+requires-python = ">=3.0"
+dependencies = [
+	"pyyaml",
+]
 
 [project.optional_dependencies]
-dev = ["pip-tools"]
+dev = [
+	"pip-tools",
+]
