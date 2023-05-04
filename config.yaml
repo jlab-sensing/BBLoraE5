@@ -12,6 +12,9 @@ teros:
 # Interval in seconds between uploads
 interval: 3600
 
+# Backup data to file on SD card
+backup: false
+
 # Upload method, either "lora" or "ethernet"
 method: lora
 
