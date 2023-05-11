@@ -4,5 +4,7 @@
 #
 #    pip-compile
 #
+pyserial==3.5
+    # via rocketlogger-dirtviz-uploader (pyproject.toml)
 pyyaml==6.0
     # via rocketlogger-dirtviz-uploader (pyproject.toml)

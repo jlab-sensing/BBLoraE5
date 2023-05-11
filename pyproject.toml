@@ -16,6 +16,7 @@ readme = "README.md"
 requires-python = ">=3.0"
 dependencies = [
 	"pyyaml",
+	"pyserial",
 ]
 
 [project.scripts]

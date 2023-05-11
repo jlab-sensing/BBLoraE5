@@ -1,23 +1,6 @@
-class Lora:
-    def __init__(self, port, baud=9600):
-        """Opens serial connection with LoRa module.
-        
-        Parameters
-        ----------
-        port : str
-            Serial port of LoRa module.
-        baud : int, optional
-            Baud rate of LoRa module.
-        """
-        
-        pass
+from serial import Serial
 
-    def __del__(self):
-        """Closes serial connection with LoRa module.
-        """
-
-        pass
-
+class Lora(Serial):
     def send(self, data : str):
         """Send data over LoRa.
 
