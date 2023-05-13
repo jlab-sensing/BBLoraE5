@@ -16,6 +16,8 @@ class TestRocketLogger(unittest.TestCase):
 
 		data = rl.measure()
 
+		# TODO Put measurement assertions here
+
 
 if __name__ == "__main__":
 	unittest.main()
