@@ -17,6 +17,8 @@ requires-python = ">=3.0"
 dependencies = [
 	"pyyaml",
 	"pyserial",
+	"pyzmq",
+	"numpy",
 ]
 
 [project.scripts]

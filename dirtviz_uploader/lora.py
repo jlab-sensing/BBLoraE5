@@ -1,5 +1,6 @@
 from serial import Serial
 
+
 class Lora(Serial):
     def send(self, data : str):
         """Send data over LoRa.
