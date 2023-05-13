@@ -3,18 +3,13 @@
 import unittest
 from unittest import TestCase
 
-from .rocketlogger import RocketLogger
 
-
-class TestRocketLogger(unittest.TestCase):
-
+class TestTeros12(TestCase):
 	def test_init(self):
-		rl = RocketLogger()
+		pass
 
 	def test_measure(self):
-		rl = RocketLogger()
-
-		data = rl.measure()
+		pass
 
 
 if __name__ == "__main__":
