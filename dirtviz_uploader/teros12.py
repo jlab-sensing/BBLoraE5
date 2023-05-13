@@ -1,5 +1,6 @@
 from serial import Serial
 
+
 class Teros12(Serial):
     """Interface with TEROS-12 soil moisture sensor connected through an
     Arduino.
@@ -23,12 +24,13 @@ class Teros12(Serial):
         values = raw.split('+')
         
         data = {
+            "sensorID": values[0],
             "VWC": values[1],
             "T": values[2],
             "EC": values[3]
         }
 
-        return (values[0], data)
+        return data
 
 
     def measure(self) -> dict:
@@ -43,7 +45,7 @@ class Teros12(Serial):
         """
 
         # Measurement dictionary
-        meas = {}
+        meas = []
 
         # Send measure command
         # NOTE check line endings to match Arduino implementation
@@ -61,6 +63,6 @@ class Teros12(Serial):
             # Read single measurement
             single = self.parse(raw)
 
-            meas[single[0]] = single[1]
+            meas.append(single)
 
         return meas
