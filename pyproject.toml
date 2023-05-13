@@ -23,3 +23,8 @@ dependencies = [
 
 [project.scripts]
 uploader = "dirtviz_uploader.main:cli"
+
+[project.optional-dependencies]
+dev = [
+	"pip-tools",
+]
