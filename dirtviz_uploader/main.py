@@ -12,7 +12,7 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-from .rocketlogger import Rocketlogger
+from .rocketlogger import RocketLogger
 from .teros12 import Teros12
 from .lora import Lora
 
@@ -40,8 +40,8 @@ def cli():
     if (args.verbose > 0):
         pprint(config)
 
-    # Create Rocketlogger
-    rl = Rocketlogger()
+    # Create RocketLogger
+    rl = RocketLogger()
 
     # Create TEROS-12    
     if ("teros" in config): 
@@ -59,7 +59,7 @@ def cli():
 
     # Loop forever
     while True:
-        # Add Rocketlogger data to buffer
+        # Add RocketLogger data to buffer
         for d in rl.measure():
             buf.append(d)
 

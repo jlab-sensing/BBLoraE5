@@ -7,8 +7,8 @@ import numpy as np
 import zmq
 
 
-class Rocketlogger:
-    """Interface with Rocketlogger measurement device.
+class RocketLogger:
+    """Interface with RocketLogger measurement device.
     """
 
     # Default values for rocketlogger
@@ -114,7 +114,7 @@ class Rocketlogger:
 
 
     def measure(self) -> dict:
-        """Reads most recent measurement from Rocketlogger V1, V2, I1, and I2
+        """Reads most recent measurement from RocketLogger V1, V2, I1, and I2
         channels.
 
         Returns
