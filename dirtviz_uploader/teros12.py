@@ -18,16 +18,16 @@ class Teros12(Serial):
         -------
         tuple
             Key value pairs for sensor ID and measurements in format (id, meas).
-            meas is a dictionary with keys, "VWC", "T", and "EC".
+            meas is a dictionary with keys, "vwc", "t", and "ec".
         """
 
         values = raw.split('+')
         
         data = {
             "sensorID": values[0],
-            "VWC": values[1],
-            "T": values[2],
-            "EC": values[3]
+            "vwc": values[1],
+            "temp": values[2],
+            "ec": values[3]
         }
 
         return data

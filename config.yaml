@@ -1,13 +1,17 @@
-# Name of cell connected to channels V1 and I1
-name1: test1
-# Name of cell connected to channels V2 and I2
-name2: test2
+# Cell connected to V1/I2
+cell1:
+  # Name of cell
+  name: test1
+  # Associated TEROS12 sensor ID
+  teros: 0
 
-# Mapping of cell names to TEROS-12 soil moisture sensor ids. Cell names are NOT
-# limited to measured cells.
-teros:
-  test1: 0
-  test2: 0
+# Cell connected to V2/I2
+cell2:
+  # Name of cell
+  name: test2
+  # Associated TEROS12 sensor ID
+  teros: 0
+
 
 # Interval in seconds between uploads
 interval: 3600
