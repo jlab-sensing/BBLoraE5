@@ -12,17 +12,21 @@ cell2:
   # Associated TEROS12 sensor ID
   teros: 0
 
+# Measure from teros
+teros: true
+# Serial port connected to Arduino monitoring TEROS-12 sensor
+teros_port: /dev/ttyUSB1
 
 # Interval in seconds between uploads
 interval: 3600
 
 # Backup data to file on SD card
-backup: false
+backup: true
+# Folder to backup to (optional). If not defined, defaults to 
+backup_folder: ./
 
 # Upload method, either "lora" or "ethernet"
 method: lora
 
 # Serial port connected to LoRa module
 lora_port: /dev/ttyUSB0
-# Serial port connected to Arduino monitoring TEROS-12 sensor
-teros_port: /dev/ttyUSB1

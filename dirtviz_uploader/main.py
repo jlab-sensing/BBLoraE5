@@ -3,9 +3,11 @@
 import pdb
 
 from argparse import ArgumentParser
+from csv import DictWriter
 import json
-from time import sleep
+from time import time, sleep
 from pprint import pprint
+import os
 
 from yaml import load, dump
 try:
@@ -54,7 +56,7 @@ def cli():
     rl = RocketLogger()
 
     # Create TEROS-12    
-    if ("teros" in config): 
+    if config["teros"]: 
         t12 = Teros12()
 
         # Mapping of Sensor ID to name
@@ -70,7 +72,80 @@ def cli():
         error = f"{config['method']} upload method not supported"
         raise NotImplementedError(error)
 
-    # Initialize transmit buffer
+    # Create csv files 
+    if config["backup"]:
+        # Generate filenames
+        start_time = time()
+
+        rlroots = {
+            config["cell1"]["name"]: f"{config['cell1']['name']}_rl",
+            config["cell1"]["name"]: f"{config['cell1']['name']}_rl"
+        }
+
+        terosroots = {
+            config["cell1"]["name"]: f"{config['cell1']['name']}_teros",
+            config["cell1"]["name"]: f"{config['cell1']['name']}_teros"
+        }
+
+
+        rlpaths = {}
+        terospaths = {}
+
+
+        # Loop over roots and paths
+        for root, path in zip([rlroots, terosroots], [rlpaths, terospaths]):
+            # Loop over all elements in path
+            for key, value in root.items():
+                # The main format string
+                filename = f"{start_time}_{value}.csv"
+
+                # Append path    
+                if ("backup_folder" in config):
+                    fullpath = os.path.join(config["backup_folder"], filename)
+                else:
+                    fullpath = filename
+
+                # Store in path dictionaries    
+                path[key] = fullpath
+
+
+        # Open csv filestreams and write headers
+
+        # Dictionary to hold csv writters for rl and teros. Both dictionaries
+        # are mapped to cell names
+        rl_csv = {}
+        teros_csv = {}
+
+        # headers for teros and rocketlogger data
+        rl_fieldnames = ["ts", "v", "i"]
+        teros_fieldnames = ["ts", "vwc", "temp", "ec"]
+
+        for cell in ["cell1", "cell2"]:
+            # Open cell1 csv
+            if cell in config:
+                name = config["cell1"]["name"]
+
+                rl_csv_fs = open(rlpaths[name], "w")
+                rl_csv[name] = DictWriter(
+                    rl_csv_fs,
+                    fieldnames=rl_fieldnames,
+                    extrasaction='ignore'
+                )
+                rl_csv[name]
+                rl_csv[name].writeheader()
+
+                # Open teros1 csv
+                if "teros" in config["cell1"]:
+                    teros_csv_fs = open(terospaths[name], "w")
+                    teros_csv[name] = DictWriter(
+                        teros_csv_fs,
+                        fieldnames=teros_fieldnames,
+                        extrasaction='ignore'
+                    )
+                    teros_csv[name].writeheader()
+        
+
+    # Buffer to store iterations for measurements
     buf = []
 
 
@@ -83,7 +158,7 @@ def cli():
         # Add RocketLogger data to buffer
         for d in rl.measure():
             # Channel 1
-            if config["name1"]:
+            if "cell1" in config:
                 meas = {
                     "type": "rocketlogger",
                     "cell": config["cell1"]["name"],
@@ -92,12 +167,10 @@ def cli():
                     "i": d["I1"],
                 }
 
-                meas_json = json.dumps(meas)
-
-                buf.append(meas_json)
+                buf.append(meas)
 
             # Channel 2
-            if config["name2"]:
+            if "cell2" in config:
                 meas = {
                     "type": "rocketlogger",
                     "cell": config["cell1"]["name"],
@@ -106,9 +179,7 @@ def cli():
                     "i": d["I2"],
                 }
 
-                meas_json = json.dumps(meas)
-
-                buf.append(meas_json)
+                buf.append(meas)
 
 
         # Add TEROS-12 data to buffer
@@ -122,13 +193,19 @@ def cli():
                     "ec": d["ec"],
                 }
 
-                meas_json = json.dumps(meas)
-
-                buf.append(meas_json)
+                buf.append(meas)
 
 
         # Send everything in buffer
         for d in buf:
+            if config["backup"]:
+                if d["type"] == "rocketlogger":
+                    teros_csv[d["cell"]].writerow(d)
+                elif d["type"] == "teros12":
+                    rl_csv[d["cell"]].writerow(d)
+
+            dj = json.dumps(d)
+
             uploader.send(d)
 
         # Clear buffer after transmit
