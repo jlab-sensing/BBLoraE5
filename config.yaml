@@ -25,7 +25,7 @@ backup: true
 # Folder to backup to (optional). If not defined, defaults to 
 backup_folder: ./
 
-# Upload method, either "lora" or "ethernet"
+# Upload method, can be the following literals ["lora", "eth", "none"]
 method: lora
 
 # Serial port connected to LoRa module

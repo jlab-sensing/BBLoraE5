@@ -66,8 +66,10 @@ def cli():
         }
 
     # Create upload method
-    if (config["method"] == "lora"):
+    if config["method"] == "lora":
         uploader = Lora()
+    elif config["method"] == "none":
+        pass
     else:
         error = f"{config['method']} upload method not supported"
         raise NotImplementedError(error)
@@ -204,9 +206,9 @@ def cli():
                 elif d["type"] == "teros12":
                     rl_csv[d["cell"]].writerow(d)
 
-            dj = json.dumps(d)
-
-            uploader.send(d)
+            if config["method"] != "none":
+                dj = json.dumps(d)
+                uploader.send(d)
 
         # Clear buffer after transmit
         buf.clear()
