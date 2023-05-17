@@ -51,10 +51,16 @@ def cli():
     #
 
     # Create RocketLogger
+    if (args.verbose > 1):
+        print("Opening ZMQ connection with RocketLogger")
+
     rl = RocketLogger()
 
     # Create TEROS-12
-    if "teros" in config: 
+    if "teros" in config:
+        if (args.verbose > 1):
+            print("Opening serial connection with TEROS12 Arduino")
+
         t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
 
         # Mapping of Sensor ID to name
@@ -69,6 +75,9 @@ def cli():
 
     # Create upload method
     if config["method"] == "lora":
+        if (args.verbose > 1):
+            print("Opening serial connection with LoRa module")
+
         uploader = Lora(config["lora"]["port"], config["lora"]["baud"])
     elif config["method"] == "none":
         pass
@@ -78,6 +87,9 @@ def cli():
 
     # Create csv files 
     if config["backup"]:
+        if (args.verbose > 1):
+            print("Creating CSV files and writting headers")
+
         # Generate filenames
         start_time = time()
 
