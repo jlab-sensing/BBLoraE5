@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import pdb
-
 from argparse import ArgumentParser
 from csv import DictWriter
 import json
@@ -55,7 +53,7 @@ def cli():
     # Create RocketLogger
     rl = RocketLogger()
 
-    # Create TEROS-12    
+    # Create TEROS-12
     if "teros" in config: 
         t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
 
@@ -64,6 +62,10 @@ def cli():
             config["cell1"]["teros"]: config["cell1"]["name"],
             config["cell2"]["teros"]: config["cell2"]["name"],
         }
+
+        if (args.verbose > 0):
+            print("TEROS12 SensorID to cell name mapping")
+            print(t12_map)
 
     # Create upload method
     if config["method"] == "lora":
@@ -109,6 +111,16 @@ def cli():
 
                 # Store in path dictionaries    
                 path[key] = fullpath
+
+        # Print formatted paths
+        if args.verbose > 0:
+            print("Filepaths for RocketLogger csv")
+            for _, v in rlpaths:
+                print(v)
+
+            print("Filepaths for TEROS12 csv")
+            for _, v in rlpaths:
+                print(v)
 
 
         # Open csv filestreams and write headers
@@ -157,8 +169,14 @@ def cli():
 
     # Loop forever
     while True:
+        if (args.verbose > 1):
+            print("RocketLogger measurement")
+
         # Add RocketLogger data to buffer
         for d in rl.measure():
+            if (args.verbose > 2):
+                print(d)
+
             # Channel 1
             if "cell1" in config:
                 meas = {
@@ -168,6 +186,9 @@ def cli():
                     "v": d["V1"],
                     "i": d["I1"],
                 }
+                
+                if (args.verbose > 2):
+                    print(f"cell1: {meas}")
 
                 buf.append(meas)
 
@@ -180,12 +201,18 @@ def cli():
                     "v": d["V2"],
                     "i": d["I2"],
                 }
+                
+                if (args.verbose > 2):
+                    print(f"cell2: {meas}")
 
                 buf.append(meas)
 
 
         # Add TEROS-12 data to buffer
         if ("teros" in config):
+            if (args.verbose > 1):
+                print("Reading TEROS12 Sensor")
+
             for d in t12.measure():
                 meas = {
                     "type": "teros12",
@@ -195,25 +222,46 @@ def cli():
                     "ec": d["ec"],
                 }
 
+                if (args.verbose > 2):
+                    print(meas)
+
                 buf.append(meas)
 
 
         # Send everything in buffer
         for d in buf:
+            # Print everything in buffer
+            if (args.verboase > 0):
+                print(d)
+
             if config["backup"]:
+                if (args.verbose > 1):
+                    print("Writing to csv")
                 if d["type"] == "rocketlogger":
                     teros_csv[d["cell"]].writerow(d)
                 elif d["type"] == "teros12":
                     rl_csv[d["cell"]].writerow(d)
 
             if config["method"] != "none":
+                if (args.verbose > 1):
+                    print(f"Uploading via {config['method']}")
+
                 dj = json.dumps(d)
-                uploader.send(d)
+
+                # Print uplodaed json
+                if (args.verbose > 2):
+                    print(dj)
+
+                uploader.send(dj)
 
         # Clear buffer after transmit
+        if (args.verbose > 1):
+            print("Clearing buffer")
         buf.clear()
 
         # Sleep for a given number of seconds    
+        if (args.verbose > 1):
+            print(f"Sleeping for {config['interval']} seconds")
         sleep(config["interval"])
 
 
