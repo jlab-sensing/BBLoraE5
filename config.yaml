@@ -12,10 +12,13 @@ cell2:
   # Associated TEROS12 sensor ID
   teros: 0
 
-# Measure from teros
-teros: true
-# Serial port connected to Arduino monitoring TEROS-12 sensor
-teros_port: /dev/ttyUSB1
+
+# Teros config (optional)
+teros:
+  # Serial port connected to Arduino monitoring TEROS-12 sensor
+  port: /dev/ttyUSB1
+  # Baud rate of serial connection
+  baud: 9600
 
 # Interval in seconds between uploads
 interval: 3600
@@ -28,5 +31,9 @@ backup_folder: ./
 # Upload method, can be the following literals ["lora", "eth", "none"]
 method: lora
 
-# Serial port connected to LoRa module
-lora_port: /dev/ttyUSB0
+# Serial port connected to LoRa module (optional)
+lora:
+  # Serial port of LoRa module
+  port: /dev/ttyUSB0
+  # Baud rate of LoRa serial port
+  baud: 100

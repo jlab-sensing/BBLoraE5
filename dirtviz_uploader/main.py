@@ -56,8 +56,8 @@ def cli():
     rl = RocketLogger()
 
     # Create TEROS-12    
-    if config["teros"]: 
-        t12 = Teros12()
+    if "teros" in config: 
+        t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
 
         # Mapping of Sensor ID to name
         t12_map = {
@@ -67,7 +67,7 @@ def cli():
 
     # Create upload method
     if config["method"] == "lora":
-        uploader = Lora()
+        uploader = Lora(config["lora"]["port"], config["lora"]["baud"])
     elif config["method"] == "none":
         pass
     else:
