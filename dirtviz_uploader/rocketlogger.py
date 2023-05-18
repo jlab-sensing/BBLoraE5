@@ -80,7 +80,7 @@ class RocketLogger:
         return os.path.abspath(binary)
 
 
-    def configToCliArguments(config : dict) -> list:
+    def configToCliArguments(self, config : dict) -> list:
         """
         Get CLI arguments for configuration.
 
