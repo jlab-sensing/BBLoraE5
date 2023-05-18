@@ -14,10 +14,6 @@ class RocketLogger:
 
     # Default values for rocketlogger
     _ROCKETLOGGER_BINARY = "rocketlogger"
-    _DEFAULT_SAMPLE_RATE = 1000
-    _DEFAULT_SAMPLE_COUNT = 5 * _DEFAULT_SAMPLE_RATE
-    _DEFAULT_FILE_COMMENT = "RocketLogger system test"
-    _DEFAULT_FILE_SIZE = 100 * 10**6
 
     DATA_SOCKET = "tcp://127.0.0.1:8277"
 
@@ -40,7 +36,6 @@ class RocketLogger:
 
         # Stop previous logging, no matter what
         subprocess.run([binary, "stop"])
-
         # Wait a second
         sleep(2)
 
@@ -48,17 +43,15 @@ class RocketLogger:
         config = {
             "channel": ["V1,V2,I1L,I1H,I2L,I2H"],
             "rate": 1,
-            "update": 1,
-            "output": "0",
+            "output": 0,
             "digital": False,
             "ambient": False,
-            "high-range": [],
             "web": True,
-            "background": None,
+            "stream": True,
+            "quiet": None,
         }
         args = self.configToCliArguments(config)
-        subprocess.run([binary, "start"] + args, check=True)
-
+        self.rl_cli = subprocess.Popen([binary, "start"] + args)
 
         # Connect to socket
         self.context = zmq.Context()
@@ -67,6 +60,12 @@ class RocketLogger:
         self.socket.connect(self.DATA_SOCKET) 
         self.socket.subscribe("")
 
+    def __del__(self):
+        """Destructor
+        
+        Closes the RocketLogger CLI interface 
+        """
+        self.rl_cli.terminate()
 
     def getBinary(self) -> os.path:
         """
