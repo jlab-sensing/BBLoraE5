@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import subprocess
+from time import sleep
 
 import numpy as np
 import zmq
@@ -39,6 +40,9 @@ class RocketLogger:
 
         # Stop previous logging, no matter what
         subprocess.run([binary, "stop"])
+
+        # Wait a second
+        sleep(2)
 
         # Start logging with defined config
         config = {
