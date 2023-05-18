@@ -37,23 +37,20 @@ class RocketLogger:
         # Find binary
         binary = self.getBinary()
 
-        # Stop previous logging
-        subprocess.run([binary, "stop"], check=True)
+        # Stop previous logging, no matter what
+        subprocess.run([binary, "stop"])
 
         # Start logging with defined config
         config = {
             "channel": ["V1,V2,I1L,I1H,I2L,I2H"],
-            "rate": 1000,
+            "rate": 1,
             "update": 1,
-            "output": "data.rld",
-            "format": "rld",
-            "size": "??",
-            "comment": "",
+            "output": "0",
             "digital": False,
-            "ambient": True,
-            "aggregate": "downsample",
+            "ambient": False,
             "high-range": [],
             "web": True,
+            "background": None,
         }
         args = self.configToCliArguments(config)
         subprocess.run([binary, "start"] + args, check=True)
