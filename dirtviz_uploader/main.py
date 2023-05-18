@@ -62,6 +62,7 @@ def cli():
             print("Opening serial connection with TEROS12 Arduino")
 
         t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
+        t12.coef = config["teros"]["calibration"]
 
         # Mapping of Sensor ID to name
         t12_map = {
@@ -144,7 +145,7 @@ def cli():
 
         # headers for teros and rocketlogger data
         rl_fieldnames = ["ts", "v", "i"]
-        teros_fieldnames = ["ts", "vwc", "temp", "ec"]
+        teros_fieldnames = ["ts", "raw_vwc", "vwc", "temp", "ec"]
 
         for cell in ["cell1", "cell2"]:
             # Open cell1 csv
