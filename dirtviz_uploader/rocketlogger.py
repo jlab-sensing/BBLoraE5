@@ -124,27 +124,65 @@ class RocketLogger:
             "V2", "I2"].
         """
 
+        # Measurement dictionary
+        data = {}
+
         message = self.socket.recv_multipart()
 
         # 1. JSON channel metadata
         meta = json.loads(message[0])
-        print(f"data received: {meta}")
+        #print(f"data received: {meta}")
 
         # 2. Data block timestamps
-        time = np.frombuffer(message[1], dtype=self.DT_TIMESTAMP)
-        print(f"time: {time}")
+        #time = np.frombuffer(message[1], dtype=self.DT_TIMESTAMP)
+        #print(f"time: {time}")
+        time_list = np.frombuffer(message[1], dtypes="<u8")
 
-        channel_index = 2
-        # 3. non-binary channels in order of channel metadata
-        for channel in meta["channels"]:
-            if channel["unit"] == "binary":
+        # Store measurement data
+        for ch_idx, ch_meta in enumerate(meta["channels"], start=2):
+            # Stop at binary channels
+            if ch_meta["unit"] == "binary":
                 continue
 
-            data = np.frombuffer(message[channel_index], dtype="<i4")
-            print(channel["name"], data)
+            # Convert binary to list
+            meas_list = np.frombuffer(message[ch_idx], dtype="<i4")
+            # Store data
+            data[ch_meta["name"]] = meas_list
 
-            channel_index += 1
+        # Store digital and valid channels which are all stored together
+        # requiring special handling
+        binary = np.frombuffer(message[ch_idx], dtype="<u4")
+        for ch_meta in meta["channels"][ch_idx]:
+            # Generate bitmask
+            mask = 0x01 << ch_meta["bit"]
+            # Store boolean
+            data[ch_meta["name"]] = bool(binary & mask)
 
-        # 4. binary channel bitmaps (if any listed in metadata)
-        binary = np.frombuffer(message[channel_index], dtype="<u4")
-        print(f"binary: {binary}")
+        # Apply valid to current channels
+        for ch in [1,2]:
+            ch_low_name = f"I{ch}L"
+            ch_high_name = f"I{ch}H"
+            ch_valid_name = f"I{ch}L_valid"
+
+            valid_list = []
+
+            for low, high, valid in zip(data[ch_low_name], data[ch_high_name], data[ch_valid_name]):
+                if valid:
+                    valid_list.append(low)
+                else:
+                    valid_list.append(high) 
+
+            data["I{ch}"] = np.array(valid_list)
+
+            # Remove high low channels
+            del data[ch_low_name]
+            del data[ch_high_name]
+
+        # Average data
+        avg_data = {}
+        for key, value in data.items():
+            avg_data[key] = np.mean(value)
+
+        avg_data["ts"] = time_list[0]
+
+        return avg_data
