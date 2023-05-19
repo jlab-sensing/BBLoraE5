@@ -152,23 +152,32 @@ def cli():
             if cell in config:
                 name = config["cell1"]["name"]
 
+                # Create directories if doesn't exist
+                os.makedirs(os.path.dirname(rlpaths[name]), exist_ok=True)
+                # Open FD
                 rl_csv_fs = open(rlpaths[name], "w")
+                # Initialize DictWriter
                 rl_csv[name] = DictWriter(
                     rl_csv_fs,
                     fieldnames=rl_fieldnames,
                     extrasaction='ignore'
                 )
-                rl_csv[name]
+                # Write header
                 rl_csv[name].writeheader()
 
                 # Open teros1 csv
                 if "teros" in config["cell1"]:
+                    # Create directories if doesn't exist
+                    os.makedirs(os.path.dirname(terospaths[name]), exist_ok=True)
+                    # Open FD
                     teros_csv_fs = open(terospaths[name], "w")
+                    # Initialize DictWriter
                     teros_csv[name] = DictWriter(
                         teros_csv_fs,
                         fieldnames=teros_fieldnames,
                         extrasaction='ignore'
                     )
+                    # Write header
                     teros_csv[name].writeheader()
         
 
