@@ -1,98 +1,12 @@
 Overview
 ========
 
-Rocketlogger CLI Reference
---------------------------
-```
-(.venv) rocketlogger@rocketlogger:~/Rocketlogger-Firmware$ rocketlogger --help
-Usage: rocketlogger [OPTION...] ACTION
-RocketLogger CLI -- manage your RocketLogger measurements.
-Control or configure measurements using the actions specified by ACTION.
-Supported values for ACTION are:
-
-  Measurement control:
-    start	Start a new measurement with provided configuration
-    stop	Stop measurement running in the background
-
-  Measurement configuration and status management:
-    config	Display configuration, not starting a new or affecting a running
-measurement
-    status	Display the current sampling status
-
- Basic measurement configuration options:
-  -b, --background           Start measurement in the background and exit after
-                             start.
-  -c, --channel=SELECTION    Channel selection to sample. A comma separated
-                             list of the channel names (V1, V2, V3, V4, I1L,
-                             I1H, I2L, and/or I2H) or 'all' to enable all
-                             channels.
-  -i, --interactive          Display measurement data in the command line
-                             interface.
-  -o, --output=FILE          Store data to specified file. Use zero to disable
-                             file storage.
-  -r, --rate=RATE            Sampling rate in Hz. Supported values are: 1, 10,
-                             100, 1k, 2k, 4k, 8k, 16k, 32k, 64k.
-      --samples=COUNT        Number of samples to record before stopping
-                             measurement (k, M, G, T scaling suffixes can be
-                             used).
-  -u, --update=RATE          Measurement data update rate in Hz. Supported
-                             values: 1, 2, 5, 10.
-
- Measurement configuration options for storing measurement files:
-  -C, --comment=COMMENT      Comment stored in file header. Comment is ignored
-                             if file saving is disabled.
-  -f, --format=FORMAT        Select file format: 'csv', 'rld'.
-      --size=SIZE            Select max file size (k, M, G, T scaling suffixes
-                             can be used).
-
- Setting and resetting the stored default:
-      --default              Set current configuration as default. Supported
-                             for all measurement configurations.
-      --reset                Reset default configuration to factory defaults
-                             and ignores any other provided configuration
-                             without notice. Only allowed in combination with
-                             the 'config' action.
-
- Optional arguments for extended sampling features:
-  -a, --ambient[=BOOL]       Enable logging of ambient sensors, if available.
-                             Disabled by default.
-      --calibration          Ignore existing calibration values. Use this
-                             option for device calibration measurements only.
-  -d, --digital[=BOOL]       Enable logging of digital inputs. Enabled by
-                             default.
-  -g, --aggregate=MODE       Data aggregation mode for low sample rates.
-                             Existing modes: 'average', 'downsample'.
-  -h, --high-range=SELECTION Force high range measurements on selected
-                             channels. A comma separated list of the channel
-                             names (I1H and/or I2H) or 'all' to force high
-                             range measurements all channels. Inactive per
-                             default.
-  -w, --web[=BOOL]           Enable web server plotting. Enabled per default.
-
- Optional arguments for status and config actions:
-      --cli                  Print configuration as full CLI command.
-      --json                 Print configuration or status as JSON formatted
-                             string.
-
- Generic program switches:
-  -q, -s, --quiet, --silent  Do not produce any output
-  -v, --verbose              Produce verbose output
-
-  -?, --help                 Give this help list
-      --usage                Give a short usage message
-  -V, --version              Print program version
-
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
-
-Report bugs to <https://github.com/ETHZ-TEC/RocketLogger/issues>.
-```
-
 This repo contains the firmware used to measure and upload MFC data to our visualization portal, [DirtViz](https://dirtviz.jlab.ucsc.edu). The measurement itself is done with a [RocketLogger](https://www.rocketlogger.ethz.ch/), and either sent to our database via ethernet or [LoRaWAN](https://lora-alliance.org/about-lorawan/). 
 
 [Link to the Dirtviz Repo](https://github.com/jlab-sensing/DirtViz)
 
-Note: This project is based on v1 of the RocketLogger firmware -- our code has not yet been tested on v2.
+> This uploader only works on firmware versions greater than v2.0.0, due to the
+dependency on python.
 
 Configuring the Rocketloggers
 -----------------------------
@@ -111,14 +25,46 @@ If you list the ttyO* devices again again, it should have added another line whi
 
 From there, you can connect the LoRa module to the Beaglebone's UART5 pins (see [datasheet](https://docs.beagleboard.org/latest/boards/beaglebone/black/ch07.html)).
 
-Running the logging program
----------------------------
+Some Notes
+----------
+- The upload interval is implemented by sleeping at the end of the forever loop, therefore the upload interval is not strictly monotonic.
+- The data has the scale applied after measurement and is stored in the standard units V/I, so the uploaded data *may* have rounding errors when measuring very small voltages and currents.
 
-Before you collect any data, you must set some configurations. First, set the number of samples to take inside of the "logger" script (located in the scripts folder). The Rocketlogger collects 1 sample per second, and the Teros sensor 1 sample per 10 seconds. When you set the variable `NUM_SAMPLES`, it refers to the number of Rocketlogger samples. The default is 180, which is 3 minutes. A sample number lower than 30 may result in unintended behavior.
+Installation
+------------
 
-Enter `rl.conf` and set the data transmission method (simply "ethernet" or "lora") and cell names. Default is ethernet. It sends via POST request, if you need to change the address you can do so in `main.c`.
+> NOTE: The following is untested and some commands will require `sudo` access. Someone should really update this documentation... 
 
-With the configurations set, build the project with `sudo ./install.sh`. Use a screen session so that you can detach from the program with `screen -S session-name`. Run the program with the "logger" script, then when you're ready to leave, hit `ctrl-a` then `ctrl-d`, and you can log out with the program still running.
+> PLEASE someone write an ansible script to install this automatically
+
+1. Install prerequisites
+```
+sudo apt-get update && sudo apt-get upgrade
+sudo apt-get install python3 python3-pip python3-venv python3-dev python3-numpy
+```
+2. Clone repository
+```
+git clone https://github.com/jlab-sensing/Rocketlogger-Firmware.git
+cd RocketLogger-Firmware
+```
+3. Install package (it may take ~20mins if numpy module needs to be built)
+```
+python3 -m pip install -U pip
+pip3 install .
+```
+4. Copy config
+```
+cp uploader.yaml /etc
+```
+5. Install systemd service and enable on startup
+```
+cd uploader.service /etc/systemd/system
+systemctl daemon-reload
+systemctl enable uploader
+# Start immediately
+systemctl start uploader
+```
+
 
 LoRaWAN
 -------
