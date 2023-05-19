@@ -149,7 +149,7 @@ class RocketLogger:
             # Adjust for units
             meas_adj_list = meas_list.astype(float) * ch_meta["scale"]
             # Store data
-            data[ch_meta["name"]] = meas_list
+            data[ch_meta["name"]] = meas_adj_list
 
         # Store digital and valid channels which are all stored together
         # requiring special handling
