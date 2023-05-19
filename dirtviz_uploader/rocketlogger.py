@@ -142,7 +142,7 @@ class RocketLogger:
         for ch_idx, ch_meta in enumerate(meta["channels"], start=2):
             # Stop at binary channels
             if ch_meta["unit"] == "binary":
-                continue
+                break
 
             # Convert binary to list
             meas_list = np.frombuffer(message[ch_idx], dtype="<i4")
@@ -152,14 +152,15 @@ class RocketLogger:
         # Store digital and valid channels which are all stored together
         # requiring special handling
         binary = np.frombuffer(message[ch_idx], dtype="<u4")
-        for ch_meta in meta["channels"][ch_idx]:
+        for ch_meta in meta["channels"][ch_idx-2:]:
             # Generate bitmask
             mask = 0x01 << ch_meta["bit"]
             # Store boolean
-            data[ch_meta["name"]] = bool(binary & mask)
+            data[ch_meta["name"]] = (binary & mask).astype(bool)
 
         # Apply valid to current channels
         for ch in [1,2]:
+            ch_name = f"I{ch}"
             ch_low_name = f"I{ch}L"
             ch_high_name = f"I{ch}H"
             ch_valid_name = f"I{ch}L_valid"
@@ -172,11 +173,12 @@ class RocketLogger:
                 else:
                     valid_list.append(high) 
 
-            data["I{ch}"] = np.array(valid_list)
+            data[ch_name] = np.array(valid_list)
 
             # Remove high low channels
             del data[ch_low_name]
             del data[ch_high_name]
+            del data[ch_valid_name]
 
         # Average data
         avg_data = {}
