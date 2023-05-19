@@ -136,7 +136,7 @@ class RocketLogger:
         # 2. Data block timestamps
         #time = np.frombuffer(message[1], dtype=self.DT_TIMESTAMP)
         #print(f"time: {time}")
-        time_list = np.frombuffer(message[1], dtypes="<u8")
+        time_list = np.frombuffer(message[1], dtype="<u8")
 
         # Store measurement data
         for ch_idx, ch_meta in enumerate(meta["channels"], start=2):
