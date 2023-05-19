@@ -1,0 +1,14 @@
+[Unit]
+Description=Dirtviz Uploader for RocketLogger
+Documentation=https://github.com/jlab-sensing/Rocketlogger-Firmware
+
+After=rocketlogger.service
+Requires=rocketlogger.service
+
+[Service]
+Type=simple
+ExecStart=uploader --config /etc/uploader.yaml
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
