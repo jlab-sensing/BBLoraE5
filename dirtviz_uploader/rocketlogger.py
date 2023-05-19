@@ -146,6 +146,8 @@ class RocketLogger:
 
             # Convert binary to list
             meas_list = np.frombuffer(message[ch_idx], dtype="<i4")
+            # Adjust for units
+            meas_adj_list = meas_list.astype(float) * ch_meta["scale"]
             # Store data
             data[ch_meta["name"]] = meas_list
 
