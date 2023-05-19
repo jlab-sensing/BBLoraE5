@@ -1,14 +1,15 @@
 Overview
-===================================================================================================
+========
 
 This repo contains the firmware used to measure and upload MFC data to our visualization portal, [DirtViz](https://dirtviz.jlab.ucsc.edu). The measurement itself is done with a [RocketLogger](https://www.rocketlogger.ethz.ch/), and either sent to our database via ethernet or [LoRaWAN](https://lora-alliance.org/about-lorawan/). 
 
 [Link to the Dirtviz Repo](https://github.com/jlab-sensing/DirtViz)
 
-Note: This project is based on v1 of the RocketLogger firmware -- our code has not yet been tested on v2.
+> This uploader only works on firmware versions greater than v2.0.0, due to the
+dependency on python.
 
 Configuring the Rocketloggers
----------------------------------------------------------------------------------------------------
+-----------------------------
 
 Because of how heavily multiplexed the Rocketlogger pins are, the only UART bus that we can use is UART5. By default, the beaglebones don't come with UART5 enabled which means it has to be set up manually. Type `ls -l /dev/ttyO*`, and it should only list one line:
 ```
@@ -24,17 +25,49 @@ If you list the ttyO* devices again again, it should have added another line whi
 
 From there, you can connect the LoRa module to the Beaglebone's UART5 pins (see [datasheet](https://docs.beagleboard.org/latest/boards/beaglebone/black/ch07.html)).
 
-Running the logging program
-----------------------------------------------------------------------------------------------------
+Some Notes
+----------
+- The upload interval is implemented by sleeping at the end of the forever loop, therefore the upload interval is not strictly monotonic.
+- The data has the scale applied after measurement and is stored in the standard units V/I, so the uploaded data *may* have rounding errors when measuring very small voltages and currents.
 
-Before you collect any data, you must set some configurations. First, set the number of samples to take inside of the "logger" script (located in the scripts folder). The Rocketlogger collects 1 sample per second, and the Teros sensor 1 sample per 10 seconds. When you set the variable `NUM_SAMPLES`, it refers to the number of Rocketlogger samples. The default is 180, which is 3 minutes. A sample number lower than 30 may result in unintended behavior.
+Installation
+------------
 
-Enter `rl.conf` and set the data transmission method (simply "ethernet" or "lora") and cell names. Default is ethernet. It sends via POST request, if you need to change the address you can do so in `main.c`.
+> NOTE: The following is untested and some commands will require `sudo` access. Someone should really update this documentation... 
 
-With the configurations set, build the project with `sudo ./install.sh`. Use a screen session so that you can detach from the program with `screen -S session-name`. Run the program with the "logger" script, then when you're ready to leave, hit `ctrl-a` then `ctrl-d`, and you can log out with the program still running.
+> PLEASE someone write an ansible script to install this automatically
+
+1. Install prerequisites
+```
+sudo apt-get update && sudo apt-get upgrade
+sudo apt-get install python3 python3-pip python3-venv python3-dev python3-numpy
+```
+2. Clone repository
+```
+git clone https://github.com/jlab-sensing/Rocketlogger-Firmware.git
+cd RocketLogger-Firmware
+```
+3. Install package (it may take ~20mins if numpy module needs to be built)
+```
+python3 -m pip install -U pip
+pip3 install .
+```
+4. Copy config
+```
+cp uploader.yaml /etc
+```
+5. Install systemd service and enable on startup
+```
+cd uploader.service /etc/systemd/system
+systemctl daemon-reload
+systemctl enable uploader
+# Start immediately
+systemctl start uploader
+```
+
 
 LoRaWAN
-----------------------------------------------------------------------------------------------------
+-------
 
 Specifics on LoRaWAN and how it works can be found [here](https://lora-alliance.org/about-lorawan/).
 

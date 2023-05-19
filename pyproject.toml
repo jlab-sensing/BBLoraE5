@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["dirtviz_uploader"]
+
+[project]
+name = "rocketlogger-dirtviz-uploader"
+version = "0.0.1"
+authors = [
+  { name="John Madden", email="jmadden173@pm.me" },
+]
+description = "A small example package"
+readme = "README.md"
+requires-python = ">=3.0"
+dependencies = [
+	"pyyaml",
+	"pyserial",
+	"pyzmq",
+	"numpy",
+]
+
+[project.scripts]
+uploader = "dirtviz_uploader.main:cli"
+
+[project.optional-dependencies]
+dev = [
+	"pip-tools",
+]

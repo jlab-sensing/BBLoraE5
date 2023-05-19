@@ -1,0 +1,41 @@
+# Cell connected to V1/I2
+cell1:
+  # Name of cell
+  name: test1
+  # Associated TEROS12 sensor ID
+  teros: 0
+
+# Cell connected to V2/I2
+cell2:
+  # Name of cell
+  name: test2
+  # Associated TEROS12 sensor ID
+  teros: 0
+
+
+# Teros config (optional)
+teros:
+  # Serial port connected to Arduino monitoring TEROS-12 sensor
+  port: /dev/ttyUSB1
+  # Baud rate of serial connection
+  baud: 9600
+  # Calibration polynomial coefficients
+  calibration: [5e-10, -4e-6, 0.0098, -8.393]
+
+# Interval in seconds between uploads
+interval: 60
+
+# Backup data to file on SD card
+backup: true
+# Folder to backup to (optional). If not defined, defaults to 
+backup_folder: /media/sdcard/uploader
+
+# Upload method, can be the following literals ["lora", "eth", "none"]
+method: lora
+
+# Serial port connected to LoRa module (optional)
+lora:
+  # Serial port of LoRa module
+  port: /dev/ttyUSB0
+  # Baud rate of LoRa serial port
+  baud: 100
