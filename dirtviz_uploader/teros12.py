@@ -92,7 +92,7 @@ class Teros12(Serial):
                 break
 
             # Read single measurement
-            single = self.parse(meas_str.decode("utf-8"))
+            single = self.parse(raw.decode("utf-8"))
             # Append timestamp
             single["ts"] = time()
 
