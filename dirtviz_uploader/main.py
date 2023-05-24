@@ -62,7 +62,7 @@ def cli():
             print("Opening serial connection with TEROS12 Arduino")
 
         t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
-        t12.coef = config["teros"]["calibration"]
+        t12.coef = [float(c) for c in config["teros"]["calibration"]]
 
 
     # Create upload method
