@@ -54,7 +54,8 @@ class Teros12(Serial):
             meas is a dictionary with keys, "raw_vwc", "vwc", "t", and "ec".
         """
 
-        values = raw.split('+')
+        # Split and convert to ints
+        values = [int(v) for v in raw.split('+')]
 
         data = {
             "sensorID": values[0],
