@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import pdb
-
 from argparse import ArgumentParser
 from csv import DictWriter
 import json
@@ -25,7 +23,7 @@ def cli():
     #
     # Argument Parser
     #
-
+    
     parser = ArgumentParser(description="Remotely upload MFC data to Dirtviz")
     parser.add_argument(
         "-v", "--verbose",
@@ -88,7 +86,7 @@ def cli():
         error = f"{config['method']} upload method not supported"
         raise NotImplementedError(error)
 
-    # Create csv files
+    # Create csv files 
     if config["backup"]:
         if (args.verbose > 1):
             print("Creating CSV files and writting headers")
@@ -118,13 +116,13 @@ def cli():
                 # The main format string
                 filename = f"{start_time}_{value}.csv"
 
-                # Append path
+                # Append path    
                 if ("backup_folder" in config):
                     fullpath = os.path.join(config["backup_folder"], filename)
                 else:
                     fullpath = filename
 
-                # Store in path dictionaries
+                # Store in path dictionaries    
                 path[key] = fullpath
 
         # Print formatted paths
@@ -181,7 +179,7 @@ def cli():
                     )
                     # Write header
                     teros_csv[name].writeheader()
-
+        
 
     # Buffer to store iterations for measurements
     buf = []
@@ -210,7 +208,7 @@ def cli():
                     "v": d["V1"],
                     "i": d["I1"],
                 }
-
+                
                 if (args.verbose > 2):
                     print(f"cell1: {meas}")
 
@@ -225,7 +223,7 @@ def cli():
                     "v": d["V2"],
                     "i": d["I2"],
                 }
-
+                
                 if (args.verbose > 2):
                     print(f"cell2: {meas}")
 
@@ -283,7 +281,7 @@ def cli():
             print("Clearing buffer")
         buf.clear()
 
-        # Sleep for a given number of seconds
+        # Sleep for a given number of seconds    
         if (args.verbose > 1):
             print(f"Sleeping for {config['interval']} seconds")
         sleep(config["interval"])
