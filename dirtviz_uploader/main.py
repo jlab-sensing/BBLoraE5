@@ -186,39 +186,40 @@ def cli():
             print("RocketLogger measurement")
 
         # Add RocketLogger data to buffer
-        for d in rl.measure():
+        rl_d = rl.measure()
+
+        if (args.verbose > 2):
+            print(rl_d)
+
+        # Channel 1
+        if "cell1" in config:
+            meas = {
+                "type": "rocketlogger",
+                "cell": config["cell1"]["name"],
+                "ts": rl_d["ts"],
+                "v": rl_d["V1"],
+                "i": rl_d["I1"],
+            }
+
             if (args.verbose > 2):
-                print(d)
+                print(f"cell1: {meas}")
 
-            # Channel 1
-            if "cell1" in config:
-                meas = {
-                    "type": "rocketlogger",
-                    "cell": config["cell1"]["name"],
-                    "ts": d["ts"],
-                    "v": d["V1"],
-                    "i": d["I1"],
-                }
+            buf.append(meas)
 
-                if (args.verbose > 2):
-                    print(f"cell1: {meas}")
+        # Channel 2
+        if "cell2" in config:
+            meas = {
+                "type": "rocketlogger",
+                "cell": config["cell1"]["name"],
+                "ts": rl_d["ts"],
+                "v": rl_d["V2"],
+                "i": rl_d["I2"],
+            }
 
-                buf.append(meas)
+            if (args.verbose > 2):
+                print(f"cell2: {meas}")
 
-            # Channel 2
-            if "cell2" in config:
-                meas = {
-                    "type": "rocketlogger",
-                    "cell": config["cell1"]["name"],
-                    "ts": d["ts"],
-                    "v": d["V2"],
-                    "i": d["I2"],
-                }
-
-                if (args.verbose > 2):
-                    print(f"cell2: {meas}")
-
-                buf.append(meas)
+            buf.append(meas)
 
 
         # Add TEROS-12 data to buffer
