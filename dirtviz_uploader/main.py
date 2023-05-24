@@ -250,7 +250,7 @@ def cli():
         # Send everything in buffer
         for d in buf:
             # Print everything in buffer
-            if (args.verboase > 0):
+            if (args.verbose > 0):
                 print(d)
 
             if config["backup"]:
