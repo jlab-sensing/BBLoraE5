@@ -64,15 +64,6 @@ def cli():
         t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
         t12.coef = config["teros"]["calibration"]
 
-        # Mapping of Sensor ID to name
-        t12_map = {
-            config["cell1"]["teros"]: config["cell1"]["name"],
-            config["cell2"]["teros"]: config["cell2"]["name"],
-        }
-
-        if (args.verbose > 0):
-            print("TEROS12 SensorID to cell name mapping")
-            print(t12_map)
 
     # Create upload method
     if config["method"] == "lora":
@@ -236,18 +227,23 @@ def cli():
                 print("Reading TEROS12 Sensor")
 
             for d in t12.measure():
-                meas = {
-                    "type": "teros12",
-                    "cell": t12_map[d["sensorID"]],
-                    "vwc": d["vwc"],
-                    "temp": d["temp"],
-                    "ec": d["ec"],
-                }
+                # Find cell names associated with sensorIDs
 
-                if (args.verbose > 2):
-                    print(meas)
+                for c in ["cell1", "cell2"]:
+                    if config[c]["teros"] == d["sensorID"]:
+                        meas = {
+                            "type": "teros12",
+                            "cell": config[c]["name"],
+                            "vwc": d["vwc"],
+                            "temp": d["temp"],
+                            "ec": d["ec"],
+                        }
 
-                buf.append(meas)
+                        if (args.verbose > 2):
+                            print(meas)
+
+                        buf.append(meas)
+
 
 
         # Send everything in buffer
