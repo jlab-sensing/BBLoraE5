@@ -91,12 +91,14 @@ class Teros12(Serial):
             raw = self.readline()
             raw = raw.strip()
 
+            meas_str = raw.decode("utf-8")
+
             # Check for end signal
-            if (raw == "END"):
+            if (meas_str == "END"):
                 break
 
             # Read single measurement
-            single = self.parse(raw.decode("utf-8"))
+            single = self.parse(meas_str)
             # Append timestamp
             single["ts"] = time()
 
