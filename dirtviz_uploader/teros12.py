@@ -25,7 +25,7 @@ class Teros12(Serial):
         Returns
         -------
         float
-            VWC as percentage        
+            VWC as percentage
         """
 
         vwc = 0
@@ -52,7 +52,7 @@ class Teros12(Serial):
         """
 
         values = raw.split('+')
-        
+
         data = {
             "sensorID": values[0],
             "raw_vwc": values[1],
@@ -66,7 +66,7 @@ class Teros12(Serial):
 
     def measure(self) -> dict:
         """Take measurement from TEROS-12.
-        
+
         Returns
         -------
         dict
@@ -80,14 +80,14 @@ class Teros12(Serial):
 
         # Send measure command
         # NOTE check line endings to match Arduino implementation
-        self.write(b'MEAS')
+        self.write(b'MEAS\r\n')
 
         while True:
             # Read serial port
             raw = self.readline()
             raw = raw.strip()
 
-            # Check for end signal    
+            # Check for end signal
             if (raw == "END"):
                 break
 
