@@ -28,9 +28,12 @@ class Teros12(Serial):
             VWC as percentage
         """
 
+        # Reverse coef order so lowest order is first
+        coef.reverse()
+
         vwc = 0
 
-        for i, c in enumerate(coef.reverse()):
+        for i, c in enumerate(coef):
             vwc += c * (raw_vwc ** i)
 
         return vwc
