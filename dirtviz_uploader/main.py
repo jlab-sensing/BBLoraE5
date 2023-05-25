@@ -89,12 +89,12 @@ def cli():
 
         rlroots = {
             config["cell1"]["name"]: f"{config['cell1']['name']}_rl",
-            config["cell2"]["name"]: f"{config['cell1']['name']}_rl"
+            config["cell2"]["name"]: f"{config['cell2']['name']}_rl"
         }
 
         terosroots = {
             config["cell1"]["name"]: f"{config['cell1']['name']}_teros",
-            config["cell2"]["name"]: f"{config['cell1']['name']}_teros"
+            config["cell2"]["name"]: f"{config['cell2']['name']}_teros"
         }
 
 
@@ -143,7 +143,7 @@ def cli():
         for cell in ["cell1", "cell2"]:
             # Open cell1 csv
             if cell in config:
-                name = config["cell1"]["name"]
+                name = config[cell]["name"]
 
                 # Create directories if doesn't exist
                 os.makedirs(os.path.dirname(rlpaths[name]), exist_ok=True)
@@ -159,7 +159,7 @@ def cli():
                 rl_csv[name].writeheader()
 
                 # Open teros1 csv
-                if "teros" in config["cell1"]:
+                if "teros" in config[name]:
                     # Create directories if doesn't exist
                     os.makedirs(os.path.dirname(terospaths[name]), exist_ok=True)
                     # Open FD
