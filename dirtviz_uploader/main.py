@@ -159,7 +159,7 @@ def cli():
                 rl_csv[name].writeheader()
 
                 # Open teros1 csv
-                if "teros" in config[name]:
+                if "teros" in config[cell]:
                     # Create directories if doesn't exist
                     os.makedirs(os.path.dirname(terospaths[name]), exist_ok=True)
                     # Open FD
