@@ -1,4 +1,4 @@
-from time import time
+from time import time_ns
 
 from serial import Serial
 
@@ -100,7 +100,7 @@ class Teros12(Serial):
             # Read single measurement
             single = self.parse(meas_str)
             # Append timestamp
-            single["ts"] = time()
+            single["ts"] = time_ns()
 
             meas.append(single)
 

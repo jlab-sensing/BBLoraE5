@@ -3,7 +3,7 @@
 from argparse import ArgumentParser
 from csv import DictWriter
 import json
-from time import time, sleep
+from time import time_ns, sleep
 from pprint import pprint
 import os
 
@@ -85,7 +85,7 @@ def cli():
             print("Creating CSV files and writting headers")
 
         # Generate filenames
-        start_time = time()
+        start_time = time_ns()
 
         rlroots = {
             config["cell1"]["name"]: f"{config['cell1']['name']}_rl",
@@ -244,9 +244,11 @@ def cli():
                 for c in ["cell1", "cell2"]:
                     if config[c]["teros"] == d["sensorID"]:
                         meas = {
+                            "ts": d["ts"],
                             "type": "teros12",
                             "cell": config[c]["name"],
                             "vwc": d["vwc"],
+                            "raw_vwc": d["raw_vwc"],
                             "temp": d["temp"],
                             "ec": d["ec"],
                         }
@@ -269,8 +271,10 @@ def cli():
             if config["backup"]:
                 if d["type"] == "rocketlogger":
                     teros_csv[d["cell"]].writerow(d)
+                    teros_csv[d["cell"]].flush()
                 elif d["type"] == "teros12":
                     rl_csv[d["cell"]].writerow(d)
+                    rl_csv[d["cell"]].flush()
 
             if config["method"] != "none":
                 if (args.verbose > 1):

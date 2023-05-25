@@ -25,7 +25,7 @@ class RocketLogger:
             ("monotonic_ns", "<m8[ns]"),
         ]
     )
-    
+
     def __init__(self):
         """Start logging on RocketLogger daemon and open connection to ZeroMQ
         socket.
@@ -57,13 +57,13 @@ class RocketLogger:
         self.context = zmq.Context()
 
         self.socket = self.context.socket(zmq.SUB)
-        self.socket.connect(self.DATA_SOCKET) 
+        self.socket.connect(self.DATA_SOCKET)
         self.socket.subscribe("")
 
     def __del__(self):
         """Destructor
-        
-        Closes the RocketLogger CLI interface 
+
+        Closes the RocketLogger CLI interface
         """
         self.rl_cli.terminate()
 
@@ -95,7 +95,7 @@ class RocketLogger:
         Returns
         -------
         list
-            List of CLI arguments. 
+            List of CLI arguments.
         """
         if not isinstance(config, dict):
             raise TypeError("Expected dict for config")
@@ -173,7 +173,7 @@ class RocketLogger:
                 if valid:
                     valid_list.append(low)
                 else:
-                    valid_list.append(high) 
+                    valid_list.append(high)
 
             data[ch_name] = np.array(valid_list)
 
