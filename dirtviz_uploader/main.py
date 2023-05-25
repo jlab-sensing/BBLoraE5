@@ -7,6 +7,7 @@ from time import time, sleep
 from pprint import pprint
 import os
 
+from serial import SerialTimeoutException
 from yaml import load, dump
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -227,7 +228,14 @@ def cli():
             if (args.verbose > 1):
                 print("Reading TEROS12 Sensor")
 
-            for d in t12.measure():
+            # If Teros12 measure fails then go to next loop
+            try:
+                t12_d = t12.measure()
+            except (SerialTimeoutException, ValueError):
+                continue
+
+            # Loop over t12 data
+            for d in t12_d:
                 # Find cell names associated with sensorIDs
 
                 for c in ["cell1", "cell2"]:

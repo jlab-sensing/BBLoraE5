@@ -17,7 +17,7 @@ from .teros12 import Teros12
 if __name__ == "__main__":
     #
     # Argument parser
-    # 
+    #
 
     parser = ArgumentParser(description="Test utility to read RocketLogger measurements and print to terminal.")
     parser.add_argument(
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    
+
     # Read config file
     with open(args.config) as s:
         config = load(s, Loader=Loader)
@@ -37,11 +37,13 @@ if __name__ == "__main__":
     # Read measurements
     #
 
-    t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
-    
+    t12 = Teros12(config["teros"]["port"], config["teros"]["baud"], timeout=10)
+
     while True:
-        data = t12.measure()
-        
+        try:
+            data = t12.measure()
+        except:
+            continue
+
         print(data)
-        
         sleep(5)
