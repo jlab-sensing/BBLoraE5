@@ -89,12 +89,12 @@ def cli():
 
         rlroots = {
             config["cell1"]["name"]: f"{config['cell1']['name']}_rl",
-            config["cell1"]["name"]: f"{config['cell1']['name']}_rl"
+            config["cell2"]["name"]: f"{config['cell1']['name']}_rl"
         }
 
         terosroots = {
             config["cell1"]["name"]: f"{config['cell1']['name']}_teros",
-            config["cell1"]["name"]: f"{config['cell1']['name']}_teros"
+            config["cell2"]["name"]: f"{config['cell1']['name']}_teros"
         }
 
 
@@ -125,7 +125,7 @@ def cli():
                 print(v)
 
             print("Filepaths for TEROS12 csv")
-            for _, v in rlpaths.items():
+            for _, v in terospaths.items():
                 print(v)
 
 
@@ -233,6 +233,8 @@ def cli():
             try:
                 t12_d = t12.measure()
             except (SerialTimeoutException, ValueError):
+                print("Failed to read TEROS12, retrying...")
+                buf.clear()
                 continue
 
             # Loop over t12 data
@@ -255,6 +257,8 @@ def cli():
                         buf.append(meas)
 
 
+        if (args.verbose > 1):
+            print("Writing to csv")
 
         # Send everything in buffer
         for d in buf:
@@ -263,8 +267,6 @@ def cli():
                 print(d)
 
             if config["backup"]:
-                if (args.verbose > 1):
-                    print("Writing to csv")
                 if d["type"] == "rocketlogger":
                     teros_csv[d["cell"]].writerow(d)
                 elif d["type"] == "teros12":
