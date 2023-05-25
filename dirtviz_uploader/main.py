@@ -62,7 +62,8 @@ def cli():
         if (args.verbose > 1):
             print("Opening serial connection with TEROS12 Arduino")
 
-        t12 = Teros12(config["teros"]["port"], config["teros"]["baud"])
+        t12 = Teros12(config["teros"]["port"], config["teros"]["baud"],
+                      timeout=10)
         t12.coef = [float(c) for c in config["teros"]["calibration"]]
 
 
