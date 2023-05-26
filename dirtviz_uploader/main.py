@@ -87,91 +87,32 @@ def cli():
         # Generate filenames
         start_time = time_ns()
 
-        rlroots = {
-            config["cell1"]["name"]: f"{config['cell1']['name']}_rl",
-            config["cell2"]["name"]: f"{config['cell2']['name']}_rl"
-        }
+        csvfiles = {}
 
-        terosroots = {
-            config["cell1"]["name"]: f"{config['cell1']['name']}_teros",
-            config["cell2"]["name"]: f"{config['cell2']['name']}_teros"
-        }
-
-
-        rlpaths = {}
-        terospaths = {}
-
-
-        # Loop over roots and paths
-        for root, path in zip([rlroots, terosroots], [rlpaths, terospaths]):
-            # Loop over all elements in path
-            for key, value in root.items():
-                # The main format string
-                filename = f"{start_time}_{value}.csv"
+        # Cells
+        for cell in ["cell1", "cell2"]:
+            # Loop over datatype
+            for dtype in ["rocketlogger", "teros12"]:
+                filepath = f"{config[cell]['name']}_"
+                filepath += dtype
 
                 # Append path
                 if ("backup_folder" in config):
-                    fullpath = os.path.join(config["backup_folder"], filename)
-                else:
-                    fullpath = filename
+                    fullpath = os.path.join(config["backup_folder"],
+                                            filepath)
 
-                # Store in path dictionaries
-                path[key] = fullpath
+                fd = open(fullpath, "w")
 
-        # Print formatted paths
-        if args.verbose > 0:
-            print("Filepaths for RocketLogger csv")
-            for _, v in rlpaths.items():
-                print(v)
+                if dtype == "rl":
+                    fn = ["ts", "v", "i"]
+                elif dtype == "teros":
+                    fn = ["ts", "raw_vwc", "vwc", "temp", "ec"]
 
-            print("Filepaths for TEROS12 csv")
-            for _, v in terospaths.items():
-                print(v)
+                csv = DictWriter(fd, fieldnames=fn, extrasaction="ignore")
+                csv.writeheader()
 
-
-        # Open csv filestreams and write headers
-
-        # Dictionary to hold csv writters for rl and teros. Both dictionaries
-        # are mapped to cell names
-        rl_csv = {}
-        teros_csv = {}
-
-        # headers for teros and rocketlogger data
-        rl_fieldnames = ["ts", "v", "i"]
-        teros_fieldnames = ["ts", "raw_vwc", "vwc", "temp", "ec"]
-
-        for cell in ["cell1", "cell2"]:
-            # Open cell1 csv
-            if cell in config:
-                name = config[cell]["name"]
-
-                # Create directories if doesn't exist
-                os.makedirs(os.path.dirname(rlpaths[name]), exist_ok=True)
-                # Open FD
-                rl_csv_fs = open(rlpaths[name], "w")
-                # Initialize DictWriter
-                rl_csv[name] = DictWriter(
-                    rl_csv_fs,
-                    fieldnames=rl_fieldnames,
-                    extrasaction='ignore'
-                )
-                # Write header
-                rl_csv[name].writeheader()
-
-                # Open teros1 csv
-                if "teros" in config[cell]:
-                    # Create directories if doesn't exist
-                    os.makedirs(os.path.dirname(terospaths[name]), exist_ok=True)
-                    # Open FD
-                    teros_csv_fs = open(terospaths[name], "w")
-                    # Initialize DictWriter
-                    teros_csv[name] = DictWriter(
-                        teros_csv_fs,
-                        fieldnames=teros_fieldnames,
-                        extrasaction='ignore'
-                    )
-                    # Write header
-                    teros_csv[name].writeheader()
+                csvfiles[cell][dtype]["fd"] = fd
+                csvfiles[cell][dtype]["cell"] = csv
 
 
     # Buffer to store iterations for measurements
@@ -268,14 +209,12 @@ def cli():
             if (args.verbose > 0):
                 print(d)
 
+            # Write to file
             if config["backup"]:
-                if d["type"] == "rocketlogger":
-                    teros_csv[d["cell"]].writerow(d)
-                    teros_csv[d["cell"]].flush()
-                elif d["type"] == "teros12":
-                    rl_csv[d["cell"]].writerow(d)
-                    rl_csv[d["cell"]].flush()
+                csvfiles[d["cell"]][d["type"]]["csv"].write(d)
+                csvfiles[d["cell"]][d["type"]]["fd"].flush()
 
+            # Upload data
             if config["method"] != "none":
                 if (args.verbose > 1):
                     print(f"Uploading via {config['method']}")
