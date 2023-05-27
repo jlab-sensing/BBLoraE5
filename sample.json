@@ -1,15 +1,16 @@
 {
 	"type": "rocketlogger",
+	"logger": "testlogger",
 	"cell": "testcell",
-	"ts": 8919489842985,
-	"v": 10,
+	"ts": 1685155767595461805,
+	"v": 100,
 	"i": 20
 }
 
 {
 	"type": "teros12",
 	"cell": "testcell",
-	"ts": 18319849130931,
+	"ts": 1685155868296292287,
 	"vwc": 200,
 	"temp": 20,
 	"ec": 10
