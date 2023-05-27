@@ -87,7 +87,16 @@ def cli():
         # Generate filenames
         start_time = time_ns()
 
-        csvfiles = {}
+        csvfiles = {
+            "cell1": {
+                "rocketlogger": {},
+                "teros12": {},
+            },
+            "cell2": {
+                "rocketlogger": {},
+                "teros12": {},
+            },
+        }
 
         # Cells
         for cell in ["cell1", "cell2"]:
