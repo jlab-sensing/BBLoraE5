@@ -88,18 +88,18 @@ def cli():
         start_time = time_ns()
 
         csvfiles = {
-            "cell1": {
+            config["cell1"]["name"]: {
                 "rocketlogger": {},
                 "teros12": {},
             },
-            "cell2": {
+            config["cell2"]["name"]: {
                 "rocketlogger": {},
                 "teros12": {},
             },
         }
 
         # Cells
-        for cell in ["cell1", "cell2"]:
+        for cell in csvfiles.keys():
             # Loop over datatype
             for dtype in ["rocketlogger", "teros12"]:
                 filepath = f"{config[cell]['name']}_"
