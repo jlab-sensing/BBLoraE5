@@ -103,9 +103,9 @@ def cli():
 
                 fd = open(fullpath, "w")
 
-                if dtype == "rl":
+                if dtype == "rocketlogger":
                     fn = ["ts", "v", "i"]
-                elif dtype == "teros":
+                elif dtype == "teros12":
                     fn = ["ts", "raw_vwc", "vwc", "temp", "ec"]
 
                 csv = DictWriter(fd, fieldnames=fn, extrasaction="ignore")
