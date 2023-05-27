@@ -220,7 +220,7 @@ def cli():
 
             # Write to file
             if config["backup"]:
-                csvfiles[d["cell"]][d["type"]]["csv"].write(d)
+                csvfiles[d["cell"]][d["type"]]["csv"].writerow(d)
                 csvfiles[d["cell"]][d["type"]]["fd"].flush()
 
             # Upload data
