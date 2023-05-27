@@ -102,8 +102,7 @@ def cli():
         for cell in csvfiles.keys():
             # Loop over datatype
             for dtype in ["rocketlogger", "teros12"]:
-                filepath = f"{cell}_"
-                filepath += dtype
+                filepath = f"{str(start_time)}_{cell}_{dtype}.csv"
 
                 # Append path
                 if ("backup_folder" in config):
