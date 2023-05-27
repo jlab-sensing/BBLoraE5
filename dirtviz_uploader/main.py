@@ -102,7 +102,7 @@ def cli():
         for cell in csvfiles.keys():
             # Loop over datatype
             for dtype in ["rocketlogger", "teros12"]:
-                filepath = f"{config[cell]['name']}_"
+                filepath = f"{cell}_"
                 filepath += dtype
 
                 # Append path
