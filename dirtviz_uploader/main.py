@@ -121,7 +121,7 @@ def cli():
                 csv.writeheader()
 
                 csvfiles[cell][dtype]["fd"] = fd
-                csvfiles[cell][dtype]["cell"] = csv
+                csvfiles[cell][dtype]["csv"] = csv
 
 
     # Buffer to store iterations for measurements
