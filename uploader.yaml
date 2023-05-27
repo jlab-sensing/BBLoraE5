@@ -27,7 +27,7 @@ interval: 60
 
 # Backup data to file on SD card
 backup: true
-# Folder to backup to (optional). If not defined, defaults to 
+# Folder to backup to (optional). If not defined, defaults to
 backup_folder: /media/sdcard/uploader
 
 # Upload method, can be the following literals ["lora", "eth", "none"]
@@ -39,3 +39,7 @@ lora:
   port: /dev/ttyUSB0
   # Baud rate of LoRa serial port
   baud: 100
+
+# HTTP request
+http:
+  hostname: "http://localhost/"

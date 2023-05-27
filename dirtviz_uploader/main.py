@@ -17,6 +17,7 @@ except ImportError:
 from .rocketlogger import RocketLogger
 from .teros12 import Teros12
 from .lora import Lora
+from .http import HTTP
 
 def cli():
     """CLI Interface"""
@@ -73,6 +74,11 @@ def cli():
             print("Opening serial connection with LoRa module")
 
         uploader = Lora(config["lora"]["port"], config["lora"]["baud"])
+    if config["method"] == "http":
+        if (args.verbose > 1):
+            print("Sending data as http request")
+
+        uploader = HTTP(config["http"]["hostname"])
     elif config["method"] == "none":
         pass
     else:
