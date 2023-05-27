@@ -161,7 +161,7 @@ def cli():
         if "cell2" in config:
             meas = {
                 "type": "rocketlogger",
-                "cell": config["cell1"]["name"],
+                "cell": config["cell2"]["name"],
                 "ts": rl_d["ts"],
                 "v": rl_d["V2"],
                 "i": rl_d["I2"],
