@@ -221,7 +221,7 @@ def cli():
         for d in buf:
             # Print everything in buffer
             if (args.verbose > 0):
-                print(d)
+                print(f"Internal Data: {d}")
 
             # Write to file
             if config["backup"]:
@@ -261,7 +261,7 @@ def cli():
 
                 # Print uplodaed json
                 if (args.verbose > 2):
-                    print(dj)
+                    print(f"JSON: {dj}")
 
                 # Send post request
                 r = uploader.send(dj, url=endpoint)
