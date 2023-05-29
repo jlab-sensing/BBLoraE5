@@ -60,12 +60,14 @@ class RocketLogger:
         self.socket.connect(self.DATA_SOCKET)
         self.socket.subscribe("")
 
+
     def __del__(self):
         """Destructor
 
         Closes the RocketLogger CLI interface
         """
-        self.rl_cli.terminate()
+        subprocess.run([binary, "stop"])
+
 
     def getBinary(self) -> os.path:
         """
