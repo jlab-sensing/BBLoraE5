@@ -263,7 +263,7 @@ def cli():
                 if (args.verbose > 2):
                     print(dj)
 
-                uploader.end(dj, url=endpoint)
+                uploader.send(dj, url=endpoint)
 
         # Clear buffer after transmit
         if (args.verbose > 1):
