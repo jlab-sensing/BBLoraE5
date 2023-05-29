@@ -233,7 +233,7 @@ def cli():
                     print(f"Uploading via {config['method']}")
 
             # Upload data
-            if config["method"] == "eth":
+            if config["method"] == "http":
                 # Explicitly state json keys
 
                 # Formtated dict for jsonification
