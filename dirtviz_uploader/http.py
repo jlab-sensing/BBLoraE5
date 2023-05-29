@@ -1,25 +1,15 @@
 import requests
 
 class HTTP:
-    def __init__(self, hostname : str):
-        """Constructor
-
-        Parameters
-        ----------
-        hostname : str
-            Hostname of server to post to
-        """
-
-        self.hostname = hostname
-
-
-    def send(self, data : dict):
+    def send(self, data : dict, url=None):
         """Send data as HTTP request
 
         Parameters
         ----------
         data : dict
             Dictionary of values
+        url : str
+            Endpoint url
 
         Returns
         -------
@@ -27,6 +17,6 @@ class HTTP:
             Request response
         """
 
-        r = requests.post(self.hostname, json=data)
+        r = requests.post(url, json=data)
 
         return r

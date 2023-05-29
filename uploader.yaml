@@ -1,3 +1,7 @@
+---
+# Name of uploader
+name: rocketlogger
+
 # Cell connected to V1/I2
 cell1:
   # Name of cell
@@ -42,4 +46,5 @@ lora:
 
 # HTTP request
 http:
-  hostname: "http://localhost/"
+  rl_endpoint: "https://dirtviz.jlab.ucsc.edu/dev/data-collection/frontend/api/power/"
+  teros_endpoint: "https://dirtviz.jlab.ucsc.edu/dev/data-collection/frontend/api/teros/"

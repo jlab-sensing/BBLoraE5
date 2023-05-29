@@ -78,7 +78,7 @@ def cli():
         if (args.verbose > 1):
             print("Sending data as http request")
 
-        uploader = HTTP(config["http"]["hostname"])
+        uploader = HTTP()
     elif config["method"] == "none":
         pass
     else:
@@ -228,18 +228,42 @@ def cli():
                 csvfiles[d["cell"]][d["type"]]["csv"].writerow(d)
                 csvfiles[d["cell"]][d["type"]]["fd"].flush()
 
-            # Upload data
             if config["method"] != "none":
                 if (args.verbose > 1):
                     print(f"Uploading via {config['method']}")
 
-                dj = json.dumps(d)
+            # Upload data
+            if config["method"] == "eth":
+                # Explicitly state json keys
+
+                # Formtated dict for jsonification
+                f = {
+                    "cell": d["cell"],
+                    "ts": d["ts"],
+                }
+
+                if d["type"] == "rocketlogger":
+                    f["logger"] = config["name"]
+                    f["v"] = d["v"]
+                    f["i"] = d["i"]
+
+                    endpoint = config["http"]["rl_endpoint"]
+
+                elif d["type"] == "teros12":
+                    f["vwc"] = d["vwc"]
+                    f["raw_vwc"] = d["raw_vwc"]
+                    f["temp"] = d["temp"]
+                    f["ec"] = d["ec"]
+
+                    endpoint = config["http"]["teros_endpoint"]
+
+                dj = json.dumps(f)
 
                 # Print uplodaed json
                 if (args.verbose > 2):
                     print(dj)
 
-                uploader.send(dj)
+                uploader.end(dj, url=endpoint)
 
         # Clear buffer after transmit
         if (args.verbose > 1):
