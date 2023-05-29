@@ -238,22 +238,22 @@ def cli():
 
                 # Formtated dict for jsonification
                 f = {
-                    "cell": d["cell"],
-                    "ts": d["ts"],
+                    "cell": str(d["cell"]),
+                    "ts": int(d["ts"]),
                 }
 
                 if d["type"] == "rocketlogger":
-                    f["logger"] = config["name"]
-                    f["v"] = d["v"]
-                    f["i"] = d["i"]
+                    f["logger"] = str(config["name"])
+                    f["v"] = float(d["v"])
+                    f["i"] = float(d["i"])
 
                     endpoint = config["http"]["rl_endpoint"]
 
                 elif d["type"] == "teros12":
-                    f["vwc"] = d["vwc"]
-                    f["raw_vwc"] = d["raw_vwc"]
-                    f["temp"] = d["temp"]
-                    f["ec"] = d["ec"]
+                    f["vwc"] = float(d["vwc"])
+                    f["raw_vwc"] = float(d["raw_vwc"])
+                    f["temp"] = float(d["temp"])
+                    f["ec"] = int(d["ec"])
 
                     endpoint = config["http"]["teros_endpoint"]
 
