@@ -263,7 +263,12 @@ def cli():
                 if (args.verbose > 2):
                     print(dj)
 
-                uploader.send(dj, url=endpoint)
+                # Send post request
+                r = uploader.send(dj, url=endpoint)
+
+
+                if (args.verbose > 2):
+                    print(r)
 
         # Clear buffer after transmit
         if (args.verbose > 1):
