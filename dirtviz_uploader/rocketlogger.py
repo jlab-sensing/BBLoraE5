@@ -32,10 +32,10 @@ class RocketLogger:
         """
 
         # Find binary
-        binary = self.getBinary()
+        self.binary = self.getBinary()
 
         # Stop previous logging, no matter what
-        subprocess.run([binary, "stop"])
+        subprocess.run([self.binary, "stop"])
         # Wait a second
         sleep(2)
 
@@ -51,7 +51,7 @@ class RocketLogger:
             "quiet": None,
         }
         args = self.configToCliArguments(config)
-        self.rl_cli = subprocess.Popen([binary, "start"] + args)
+        self.rl_cli = subprocess.Popen([self.binary, "start"] + args)
 
         # Connect to socket
         self.context = zmq.Context()
@@ -66,7 +66,7 @@ class RocketLogger:
 
         Closes the RocketLogger CLI interface
         """
-        subprocess.run([binary, "stop"])
+        subprocess.run([self.binary, "stop"])
 
 
     def getBinary(self) -> os.path:
