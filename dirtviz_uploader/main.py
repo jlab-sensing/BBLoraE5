@@ -7,6 +7,7 @@ from time import time_ns, sleep
 from pprint import pprint
 import os
 
+import requests
 from serial import SerialTimeoutException
 from yaml import load, dump
 try:
