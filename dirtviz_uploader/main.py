@@ -259,7 +259,7 @@ def cli():
                     endpoint = config["http"]["teros_endpoint"]
 
                 # Send post request
-                r = requests.post(f, url=endpoint)
+                r = requests.post(endpoint, json=f)
 
                 if (args.verbose > 2):
                     print(r)
