@@ -8,7 +8,12 @@ Requires=rocketlogger.service
 [Service]
 Type=simple
 ExecStart=uploader --config /etc/uploader.yaml
-Restart=on-failure
+
+Restart=always
+RestartSec=5s
+
+User=rocketlogger
+Group=rocketlogger
 
 [Install]
 WantedBy=multi-user.target
