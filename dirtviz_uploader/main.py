@@ -257,15 +257,8 @@ def cli():
 
                     endpoint = config["http"]["teros_endpoint"]
 
-                dj = json.dumps(f)
-
-                # Print uplodaed json
-                if (args.verbose > 2):
-                    print(f"JSON: {dj}")
-
                 # Send post request
-                r = uploader.send(dj, url=endpoint)
-
+                r = requests.post(f, url=endpoint)
 
                 if (args.verbose > 2):
                     print(r)
