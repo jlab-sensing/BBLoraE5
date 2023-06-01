@@ -18,7 +18,7 @@ class Teros12(Serial):
         ----------
         raw_vwc : float
             Raw VWC readings from TEROS12
-        coef : lits
+        coef : list
             Polynomial coefficients in decending order. The element coef[0]
             corresponds to the highest order term
 
@@ -28,6 +28,8 @@ class Teros12(Serial):
             VWC as percentage
         """
 
+        # Copy list
+        coef = coef.copy()
         # Reverse coef order so lowest order is first
         coef.reverse()
 
