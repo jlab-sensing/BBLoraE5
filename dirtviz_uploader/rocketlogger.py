@@ -115,6 +115,26 @@ class RocketLogger:
         return args
 
 
+    def time_to_epoch(self, dt : np.datetime64, td : np.timedelta64) -> int:
+        """Converts datetime and timedelta into unix epochs
+
+        Parameters
+        ----------
+        dt : np.datetime64
+            Datetime
+        td : np.timedelta64
+            Timedelta
+
+        Returns
+        -------
+        int
+            Unix epochs in ns
+        """
+
+        epoch_ns = dt.astype('datetime64[ns]').astype(np.int64) + td.astype(np.int64)
+        return epoch_ns
+
+
     def measure(self) -> dict:
         """Reads most recent measurement from RocketLogger V1, V2, I1, and I2
         channels.
@@ -136,9 +156,10 @@ class RocketLogger:
         #print(f"data received: {meta}")
 
         # 2. Data block timestamps
-        #time = np.frombuffer(message[1], dtype=self.DT_TIMESTAMP)
+        time = np.frombuffer(message[1], dtype=self.DT_TIMESTAMP)
+        epoch_time = self.time_to_epoch(time[0], time[1])
         #print(f"time: {time}")
-        time_list = np.frombuffer(message[1], dtype="<u8")
+        #time_list = np.frombuffer(message[1], dtype="<u8")
 
         # Store measurement data
         for ch_idx, ch_meta in enumerate(meta["channels"], start=2):
@@ -189,6 +210,6 @@ class RocketLogger:
         for key, value in data.items():
             avg_data[key] = np.mean(value)
 
-        avg_data["ts"] = time_list[0]
+        avg_data["ts"] = epoch_time
 
         return avg_data
