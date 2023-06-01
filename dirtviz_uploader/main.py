@@ -127,7 +127,7 @@ def cli():
 
                 csv = DictWriter(fd, fieldnames=fn, extrasaction="ignore")
                 # Write headers if file did not initially exist
-                if not file_exsits:
+                if not file_exists:
                     csv.writeheader()
 
                 csvfiles[cell][dtype]["fd"] = fd
