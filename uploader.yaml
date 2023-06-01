@@ -31,7 +31,7 @@ interval: 60
 
 # Backup data to file on SD card
 backup: true
-# Folder to backup to (optional). If not defined, defaults to
+# Folder to backup to (optional). If not defined, defaults to current directory
 backup_folder: /media/sdcard/uploader
 
 # Upload method, can be the following literals ["lora", "http", "none"]
