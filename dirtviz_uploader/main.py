@@ -91,9 +91,6 @@ def cli():
         if (args.verbose > 1):
             print("Creating CSV files and writting headers")
 
-        # Generate filenames
-        start_time = time_ns()
-
         csvfiles = {
             config["cell1"]["name"]: {
                 "rocketlogger": {},
@@ -109,22 +106,29 @@ def cli():
         for cell in csvfiles.keys():
             # Loop over datatype
             for dtype in ["rocketlogger", "teros12"]:
-                filepath = f"{str(start_time)}_{cell}_{dtype}.csv"
+                filepath = f"{cell}_{dtype}.csv"
 
                 # Append path
                 if ("backup_folder" in config):
                     fullpath = os.path.join(config["backup_folder"],
                                             filepath)
 
-                fd = open(fullpath, "w")
+                # Check for existance of file
+                file_exists = os.path.isfile(fullpath)
 
+                # Open file
+                fd = open(fullpath, "a")
+
+                # Create CSV writter
                 if dtype == "rocketlogger":
                     fn = ["ts", "v", "i"]
                 elif dtype == "teros12":
                     fn = ["ts", "raw_vwc", "vwc", "temp", "ec"]
 
                 csv = DictWriter(fd, fieldnames=fn, extrasaction="ignore")
-                csv.writeheader()
+                # Write headers if file did not initially exist
+                if not file_exsits:
+                    csv.writeheader()
 
                 csvfiles[cell][dtype]["fd"] = fd
                 csvfiles[cell][dtype]["csv"] = csv
