@@ -157,7 +157,7 @@ class RocketLogger:
 
         # 2. Data block timestamps
         time = np.frombuffer(message[1], dtype=self.DT_TIMESTAMP)
-        epoch_time = self.time_to_epoch(time[0], time[1])
+        epoch_time = self.time_to_epoch(time[0][0], time[0][1])
         #print(f"time: {time}")
         #time_list = np.frombuffer(message[1], dtype="<u8")
 
