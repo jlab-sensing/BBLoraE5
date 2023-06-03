@@ -1,3 +1,0 @@
-[submodule "external/ctest"]
-	path = external/ctest
-	url = https://github.com/bvdberg/ctest.git
