@@ -55,10 +55,7 @@ class RocketLogger:
 
         # Connect to socket
         self.context = zmq.Context()
-
         self.socket = self.context.socket(zmq.SUB)
-        self.socket.connect(self.DATA_SOCKET)
-        self.socket.subscribe("")
 
 
     def __del__(self):
@@ -115,60 +112,72 @@ class RocketLogger:
         return args
 
 
-    def time_to_epoch(self, dt : np.datetime64, td : np.timedelta64) -> int:
-        """Converts datetime and timedelta into unix epochs
-
+    def decode_time(self, msg, ns=False) -> int:
+        """Decodes timestamp of measurement in unix epoch seconds by default
+        
         Parameters
         ----------
-        dt : np.datetime64
-            Datetime
-        td : np.timedelta64
-            Timedelta
+        msg : bytes
+            Binary measurement message
+        ns : bool
+            Flag to enable ns accuracy
 
         Returns
         -------
         int
-            Unix epochs in ns
+            Timestamp of measurements
         """
+        # Decode binary data
+        time_arr = np.frombuffer(msg[1], dtype=self.DT_TIMESTAMP)
 
-        epoch_ns = dt.astype('datetime64[ns]').astype(np.int64) + td.astype(np.int64)
-        return epoch_ns
+        # Datetime
+        dt = time_arr[0][0]
+
+        # ns precision
+        if ns:
+            # Timedelta
+            td = time_arr[0][1]
+            # Combine Datetime and Timedelta
+            epoch_ns = dt.astype('datetime64[ns]').astype(np.int64) + td.astype(np.int64)
+
+            return epoch_ns
+        # Second precision
+        else:
+            return dt
 
 
-    def measure(self) -> dict:
-        """Reads most recent measurement from RocketLogger V1, V2, I1, and I2
-        channels.
+    def decode_meas(self, msg) -> dict:
+        """Decode measurement channels
+        
+        Parameters
+        ----------
+        msg : bytes
+            Binary measurement message
 
         Returns
         -------
         dict
-            Key value pairs of measurements with the following keys ["V1", "I1",
-            "V2", "I2"].
+            Data dictionary with each of the keys as channels
         """
 
-        # Measurement dictionary
         data = {}
 
-        message = self.socket.recv_multipart()
+        meta = json.loads(msg[0])
 
-        # 1. JSON channel metadata
-        meta = json.loads(message[0])
-        #print(f"data received: {meta}")
-
-        # 2. Data block timestamps
-        time = np.frombuffer(message[1], dtype=self.DT_TIMESTAMP)
-        epoch_time = self.time_to_epoch(time[0][0], time[0][1])
-        #print(f"time: {time}")
-        #time_list = np.frombuffer(message[1], dtype="<u8")
-
+        for ch_meta in meta["channels"]:
+            data[ch_meta["name"]] = np.array
+   
+        # Channel metadata
+        meta = json.loads(msg[0])
+ 
         # Store measurement data
         for ch_idx, ch_meta in enumerate(meta["channels"], start=2):
             # Stop at binary channels
             if ch_meta["unit"] == "binary":
                 break
 
-            # Convert binary to list
-            meas_list = np.frombuffer(message[ch_idx], dtype="<i4")
+            # Convert binary to list of measurements
+            meas_list = np.frombuffer(msg[ch_idx], dtype="<i4")
             # Adjust for units
             meas_adj_list = meas_list.astype(float) * ch_meta["scale"]
             # Store data
@@ -176,7 +185,7 @@ class RocketLogger:
 
         # Store digital and valid channels which are all stored together
         # requiring special handling
-        binary = np.frombuffer(message[ch_idx], dtype="<u4")
+        binary = np.frombuffer(msg[ch_idx], dtype="<u4")
         for ch_meta in meta["channels"][ch_idx-2:]:
             # Generate bitmask
             mask = 0x01 << ch_meta["bit"]
@@ -185,6 +194,7 @@ class RocketLogger:
 
         # Apply valid to current channels
         for ch in [1,2]:
+            # Hardcoded names of channels
             ch_name = f"I{ch}"
             ch_low_name = f"I{ch}L"
             ch_high_name = f"I{ch}H"
@@ -204,12 +214,61 @@ class RocketLogger:
             del data[ch_low_name]
             del data[ch_high_name]
             del data[ch_valid_name]
+        return data
+    
+
+    def average(self, data : dict) -> dict:
+        """Takes averages of array in each key
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary with channel names keys and arrays of measurements
+
+        Returns
+        -------
+        dict
+            Same keys with averages    
+        """
+
+        for key, value in data.items():
+            data[key] = np.mean(value)
+
+        return data
+
+
+    def measure(self) -> dict:
+        """Reads most recent measurement from RocketLogger V1, V2, I1, and I2
+        channels.
+
+        Returns
+        -------
+        dict
+            Key value pairs of measurements with the following keys ["V1", "I1",
+            "V2", "I2"].
+        """
+
+        # Connect and read message
+        self.socket.connect(self.DATA_SOCKET)
+        self.socket.subscribe("")
+        msg = self.socket.recv_multipart()
+
+        ## Process Data
+
+        # Measurement time
+        ts = self.decode_time(msg)
+        # Decode measurement into channel
+        meas = self.decode_meas(msg)
+
+        ## Aggregate data
 
         # Average data
-        avg_data = {}
-        for key, value in data.items():
-            avg_data[key] = np.mean(value)
+        meas = self.average(meas)
+        # Add timestamp
+        meas["ts"] = ts
 
-        avg_data["ts"] = epoch_time
+        ## Disconnect from socket when entering sleep mode
+        self.socket.unsubscribe("")
+        self.socket.disconnect(self.DATA_SOCKET)
 
-        return avg_data
+        return meas
