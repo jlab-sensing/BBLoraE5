@@ -42,7 +42,8 @@ class RocketLogger:
         # Start logging with defined config
         config = {
             "channel": ["V1,V2,I1L,I1H,I2L,I2H"],
-            "rate": 1,
+            "rate": 1000,
+            "update": 1,
             "output": 0,
             "digital": False,
             "ambient": False,
