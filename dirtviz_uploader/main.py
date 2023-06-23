@@ -2,18 +2,17 @@
 
 from argparse import ArgumentParser
 from csv import DictWriter
-import json
-from time import time_ns, sleep
+from time import sleep
 from pprint import pprint
 import os
 
 import requests
 from serial import SerialTimeoutException
-from yaml import load, dump
+from yaml import load
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CLoader as Loader
 except ImportError:
-    from yaml import Loader, Dumper
+    from yaml import Loader
 
 from .rocketlogger import RocketLogger
 from .teros12 import Teros12
