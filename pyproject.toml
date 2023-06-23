@@ -27,5 +27,6 @@ uploader = "dirtviz_uploader.main:cli"
 
 [project.optional-dependencies]
 dev = [
+	"pylint",
 	"pip-tools",
 ]
