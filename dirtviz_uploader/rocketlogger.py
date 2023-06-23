@@ -132,19 +132,20 @@ class RocketLogger:
         time_arr = np.frombuffer(msg[1], dtype=self.DT_TIMESTAMP)
 
         # Datetime
-        dt = time_arr[0][0]
+        datetime = time_arr[0][0]
 
         # ns precision
         if ns:
             # Timedelta
-            td = time_arr[0][1]
+            timedelta = time_arr[0][1]
             # Combine Datetime and Timedelta
-            epoch_ns = dt.astype('datetime64[ns]').astype(np.int64) + td.astype(np.int64)
+            timestamp = datetime.astype('datetime64[ns]').astype(np.int64) + timedelta.astype(np.int64)
 
-            return epoch_ns
-        # Second precision
+        # sec precision
         else:
-            return dt
+            timestamp = datetime.astype(np.int64)
+
+        return timestamp
 
 
     def decode_meas(self, msg) -> dict:
