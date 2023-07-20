@@ -2,9 +2,6 @@
 - name: Install RocketLogger firmware
   hosts: rocketloggers
   tasks:
-    - name: Ping all hosts
-      ansible.builtin.ping:
-
     - name: Install required system packages
       become: true
       ansible.builtin.apt:

@@ -2,9 +2,6 @@
 - name: Fetch data from RocketLoggers
   hosts: rocketloggers
   tasks:
-    - name: Ping all hosts
-      ansible.builtin.ping:
-
     - name: Find data files
       ansible.builtin.find:
         paths: "/media/sdcard/uploader"
