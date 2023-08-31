@@ -263,9 +263,10 @@ def cli():
 
                 # Send post request
                 r = requests.post(endpoint, json=f)
+                print(r.status_code)
 
-                if (args.verbose > 2):
-                    print(r)
+                #if (args.verbose > 2):
+                    #print(r)
 
         # Clear buffer after transmit
         if (args.verbose > 1):
