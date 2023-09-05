@@ -269,7 +269,7 @@ def cli():
                     #print(r)
 
         # Clear buffer after transmit
-        if (args.verbose > 1):
+        if (r.status_code == 200):
             print("Clearing buffer")
         buf.clear()
 
