@@ -45,7 +45,7 @@ def cli():
         config = load(s, Loader=Loader)
 
     if (args.verbose > 0):
-        pprint("Running Rocketlogger")
+        pprint(config)
 
 
     #
