@@ -268,10 +268,10 @@ def cli():
                 #if (args.verbose > 2):
                     #print(r)
 
-        # Clear buffer after transmit
-        if (r.status_code == 200):
-            print("Clearing buffer")
-        buf.clear()
+                # Clear buffer after transmit
+                if (r.status_code == 200):
+                    print("Clearing buffer")
+                    buf.clear()
 
         # Sleep for a given number of seconds
         if (args.verbose > 1):
