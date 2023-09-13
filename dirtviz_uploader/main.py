@@ -7,6 +7,7 @@ from pprint import pprint
 import os
 
 import requests
+import pickle
 from serial import SerialTimeoutException
 from yaml import load
 try:
@@ -224,6 +225,7 @@ def cli():
         # Send everything in buffer
         for d in buf:
             # Print everything in buffer
+            print(d)
             if (args.verbose > 0):
                 print(f"Internal Data: {d}")
 
@@ -268,8 +270,8 @@ def cli():
                 #if (args.verbose > 2):
                     #print(r)
 
-                # Clear buffer after transmit
-                if (r.status_code == 200):
+                # Check status code
+                if (r.status_code == 200): # if succsessful, simply clear the buffer and move on
                     print("Clearing buffer")
                     buf.clear()
 
