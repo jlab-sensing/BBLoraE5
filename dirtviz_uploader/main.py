@@ -221,6 +221,10 @@ def cli():
 
         if (args.verbose > 1):
             print("Writing to csv")
+            
+        # Create a pickle file
+        pickleFile = open('lost_data.pkl', 'wb')
+        print(pickle.load(pickleFile))
 
         # Send everything in buffer
         for d in buf:
