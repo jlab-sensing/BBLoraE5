@@ -224,7 +224,7 @@ def cli():
             
         # Create a pickle file
         pickleFile = open('lost_data.pkl', 'wb')
-        pickle.dump("pickle",  "wb")
+        pickle.dump("pickle", pickleFile, "wb")
         print(pickle.load(pickleFile))
 
         # Send everything in buffer
