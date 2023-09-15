@@ -224,10 +224,11 @@ def cli():
             
         # Create a pickle file
         pickleW = open('lost_data.pkl', 'wb')
-        pickle.dump("pickle", pickleW)
+        pickle.dump("Pkl file created", pickleW)
         pickleW.close()
         pickleR = open('lost_data.pkl', 'rb')
         print(pickle.load(pickleR))
+        pickleR.close()
 
         # Send everything in buffer
         for d in buf:
@@ -279,6 +280,9 @@ def cli():
 
                 # Check status code
                 if (r.status_code == 200): # if succsessful, simply clear the buffer and move on
+                    pickleR = open('lost_data.pkl', 'rb')
+                    print(pickle.load(pickleR))
+                    pickleR.close()
                     print("Clearing buffer")
                     buf.clear()
 
