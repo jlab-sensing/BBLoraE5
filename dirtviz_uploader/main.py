@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 from argparse import ArgumentParser
-from csv import DictWriter
-from csv import reader
+import csv
 from time import sleep
 from pprint import pprint
 import os
@@ -125,14 +124,14 @@ def cli():
                 elif dtype == "teros12":
                     fn = ["ts", "raw_vwc", "vwc", "temp", "ec"]
 
-                csv = DictWriter(fd, fieldnames=fn, extrasaction="ignore")
+                csvDictWriter = csv.DictWriter(fd, fieldnames=fn, extrasaction="ignore")
                 # Write headers if file did not initially exist
                 if not file_exists:
-                    csv.writeheader()
+                    csvDictWriter.writeheader()
                     
 
                 csvfiles[cell][dtype]["fd"] = fd
-                csvfiles[cell][dtype]["csv"] = csv
+                csvfiles[cell][dtype]["csv"] = csvDictWriter
 
 
     # Buffer to store iterations for measurements
