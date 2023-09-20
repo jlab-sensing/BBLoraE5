@@ -2,12 +2,12 @@
 
 from argparse import ArgumentParser
 from csv import DictWriter
+from csv import reader
 from time import sleep
 from pprint import pprint
 import os
 
 import requests
-import pickle
 from serial import SerialTimeoutException
 from yaml import load
 try:
