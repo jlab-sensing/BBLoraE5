@@ -136,6 +136,7 @@ def cli():
 
     # Buffer to store iterations for measurements
     buf = []
+    row_num = -1
 
 
     #
@@ -152,10 +153,15 @@ def cli():
 
         if (args.verbose > 2):
             print(rl_d)
+            
+        # Account for a possible error in posting process
+        if row_num == -1:
+            prev_stored_data = csv.reader(csvfiles)
+            print(prev_stored_data)
 
         # Channel 1
         if "cell1" in config:
-            meas = {
+            meas = {                                                                                                                                                                                                    
                 "type": "rocketlogger",
                 "cell": config["cell1"]["name"],
                 "ts": rl_d["ts"],
@@ -222,13 +228,6 @@ def cli():
         if (args.verbose > 1):
             print("Writing to csv")
             
-        # Create a pickle file
-        pickleW = open('lost_data.pkl', 'wb')
-        pickle.dump("Pkl file created", pickleW)
-        pickleW.close()
-        pickleR = open('lost_data.pkl', 'rb')
-        print(pickle.load(pickleR))
-        pickleR.close()
 
         # Send everything in buffer
         for d in buf:
