@@ -129,6 +129,7 @@ def cli():
                 # Write headers if file did not initially exist
                 if not file_exists:
                     csv.writeheader()
+                    
 
                 csvfiles[cell][dtype]["fd"] = fd
                 csvfiles[cell][dtype]["csv"] = csv
@@ -156,8 +157,12 @@ def cli():
             
         # Account for a possible error in posting process
         if row_num == -1:
-            prev_stored_data = csv.reader(csvfiles)
-            print(prev_stored_data)
+            with open(fullpath) as prev_stored_data:
+                csv_reader = csv.reader(prev_stored_data)
+                for index, row in enumerate(csv_reader):
+                    if index >= row_num:
+                        print(row[5])
+            
 
         # Channel 1
         if "cell1" in config:
@@ -279,9 +284,6 @@ def cli():
 
                 # Check status code
                 if (r.status_code == 200): # if succsessful, simply clear the buffer and move on
-                    pickleR = open('lost_data.pkl', 'rb')
-                    print(pickle.load(pickleR))
-                    pickleR.close()
                     print("Clearing buffer")
                     buf.clear()
 
