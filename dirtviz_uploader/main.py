@@ -160,7 +160,7 @@ def cli():
                 csv_reader = csv.reader(prev_stored_data)
                 for index, row in enumerate(csv_reader):
                     if index >= row_num:
-                        print(row[5])
+                        print(row)
             
 
         # Channel 1
