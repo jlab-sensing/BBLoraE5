@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 import csv
+import pandas
 from time import sleep
 from pprint import pprint
 import os
@@ -136,7 +137,10 @@ def cli():
 
     # Buffer to store iterations for measurements
     buf = []
-    row_num = -1
+    row_num = -1 # This is for marking where the server went down and how much data needs to be uploaded once it's back uo
+    # -1 when not in use, the total number of surpassed rows when not
+    
+    cur_row = 1 # Counts how many rows have been added to the csv, not perfect, but at a second of upload time it will still last 68 years
 
 
     #
@@ -155,12 +159,11 @@ def cli():
             print(rl_d)
             
         # Account for a possible error in posting process
-        if row_num == -1:
-            with open(fullpath) as prev_stored_data:
-                csv_reader = csv.reader(prev_stored_data)
-                #This isn't good it printed the whole thing and threw a null error at the end
-                for index, row in enumerate(csv_reader)[row_num:-1]:
-                    print(row)
+        if row_num != -1: # If previous upload failed
+            with open(fullpath) as prev_stored_data: 
+                csv_reader = pandas.read_csv(prev_stored_data, skiprows=row_num) # Open the csv from the stored row number
+                for index, row in csv_reader: 
+                    buf.append(row)
             
 
         # Channel 1
@@ -282,10 +285,15 @@ def cli():
                     #print(r)
 
                 # Check status code
-                if (r.status_code == 200): # if succsessful, simply clear the buffer and move on
-                    print("Clearing buffer")
-                    buf.clear()
-
+                if (r.status_code != 200): # if a failure check to see if there is a row_num stored
+                    if (row_num == -1):
+                        row_num = cur_row # 
+                else: # If succses reset row_num
+                    row_num = -1
+                
+                cur_row += 1 # Iterate number of rows stored
+                print("Clearing buffer")
+                buf.clear()
         # Sleep for a given number of seconds
         if (args.verbose > 1):
             print(f"Sleeping for {config['interval']} seconds")
