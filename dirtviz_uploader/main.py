@@ -158,9 +158,9 @@ def cli():
         if row_num == -1:
             with open(fullpath) as prev_stored_data:
                 csv_reader = csv.reader(prev_stored_data)
-                for index, row in enumerate(csv_reader):
-                    if index >= row_num:
-                        print(row)
+                #This isn't good it printed the whole thing and threw a null error at the end
+                for index, row in enumerate(csv_reader)[row_num:-1]:
+                    print(row)
             
 
         # Channel 1
