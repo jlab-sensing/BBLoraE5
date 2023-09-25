@@ -300,7 +300,8 @@ def cli():
         # Sleep for a given number of seconds
         if (args.verbose > 1):
             print(f"Sleeping for {config['interval']} seconds")
-        sleep(config["interval"])
+        #sleep(config["interval"])
+        sleep(15)
 
 
 if __name__ == "__main__":
