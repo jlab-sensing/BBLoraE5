@@ -2,7 +2,6 @@
 
 from argparse import ArgumentParser
 import csv
-import pandas
 from time import sleep
 from pprint import pprint
 import os
