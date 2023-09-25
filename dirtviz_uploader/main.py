@@ -164,6 +164,8 @@ def cli():
                 csv_reader = pandas.read_csv(prev_stored_data, skiprows=row_num) # Open the csv from the stored row number
                 for index, row in csv_reader: 
                     buf.append(row)
+                    
+            print("Previous upload failed")
             
 
         # Channel 1
@@ -290,6 +292,8 @@ def cli():
                         row_num = cur_row # 
                 else: # If succses reset row_num
                     row_num = -1
+                    
+                print(r.status_code)
                 
                 cur_row += 1 # Iterate number of rows stored
                 print("Clearing buffer")
