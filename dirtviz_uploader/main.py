@@ -161,9 +161,9 @@ def cli():
         # Account for a possible error in posting process
         if row_num != -1: # If previous upload failed
             with open(fullpath) as prev_stored_data: 
-                csv_reader = pandas.read_csv(prev_stored_data, skiprows=row_num) # Open the csv from the stored row number
-                for index, row in csv_reader: 
-                    buf.append(row)
+                csv_reader = csv.reader(prev_stored_data) # Open the csv from the stored row number
+                for row in csv_reader[cur_row:]: # Should iterate from current row marker to the end
+                    buf.append(row) # Append every row from the marker onwards to the lists
                     
             print("Previous upload failed")
             
