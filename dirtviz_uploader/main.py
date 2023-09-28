@@ -164,7 +164,6 @@ def cli():
                 rows = list(csv_reader)
                 for row in rows[row_num:]: # Should iterate from current row marker to the end
                     buf.append({'type': 'rocketlogger', 'cell': 'test1', 'ts': row[0], 'v': row[1], 'i': row[2]})
-                    print("csv: ", row)
                     
             print("Previous upload failed")
             
