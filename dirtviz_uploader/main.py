@@ -163,7 +163,7 @@ def cli():
                 csv_reader = list(csv.reader(prev_stored_data)) # Open the csv from the stored row number
                 rows = list(csv_reader)
                 for row in rows[row_num:]: # Should iterate from current row marker to the end
-                    print(row)
+                    print("csv: ", row)
                     
             print("Previous upload failed")
             
@@ -241,7 +241,7 @@ def cli():
         # Send everything in buffer
         for d in buf:
             # Print everything in buffer
-            print(d)
+            print("buf v: ", d)
             if (args.verbose > 0):
                 print(f"Internal Data: {d}")
 
@@ -281,7 +281,7 @@ def cli():
 
                 # Send post request
                 r = requests.post(endpoint, json=f)
-                print(f)
+                print("json: ", f)
                 print(r.status_code)
 
                 #if (args.verbose > 2):
