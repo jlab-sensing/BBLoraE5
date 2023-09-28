@@ -163,7 +163,7 @@ def cli():
                 csv_reader = list(csv.reader(prev_stored_data)) # Open the csv from the stored row number
                 rows = list(csv_reader)
                 for row in rows[row_num:]: # Should iterate from current row marker to the end
-                    buf.append(row) # Append every row from the marker onwards to the lists
+                    print(row)
                     
             print("Previous upload failed")
             
@@ -281,6 +281,7 @@ def cli():
 
                 # Send post request
                 r = requests.post(endpoint, json=f)
+                print(f)
                 print(r.status_code)
 
                 #if (args.verbose > 2):
