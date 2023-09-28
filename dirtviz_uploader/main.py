@@ -163,6 +163,7 @@ def cli():
                 csv_reader = list(csv.reader(prev_stored_data)) # Open the csv from the stored row number
                 rows = list(csv_reader)
                 for row in rows[row_num:]: # Should iterate from current row marker to the end
+                    buf.append({'type': 'rocketlogger', 'cell': 'test1', 'ts': row[0], 'v': row[1], 'i': row[2]})
                     print("csv: ", row)
                     
             print("Previous upload failed")
@@ -284,8 +285,8 @@ def cli():
                 print("json: ", f)
                 print(r.status_code)
 
-                #if (args.verbose > 2):
-                    #print(r)
+                if (args.verbose > 2):
+                    print(r)
 
                 # Check status code
                 if (r.status_code != 200): # if a failure check to see if there is a row_num stored
