@@ -292,8 +292,6 @@ def cli():
                         row_num = cur_row # 
                 else: # If succses reset row_num
                     row_num = -1
-                    
-                print(r.status_code)
                 
                 cur_row += 1 # Iterate number of rows stored
                 print("Clearing buffer")
