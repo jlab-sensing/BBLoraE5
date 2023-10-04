@@ -32,19 +32,24 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         global post_request_count
         post_request_count += 1
+        self.send_response(502)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"502 Bad Gateway - Too many POST requests.")
 
-        if post_request_count <= 2:
-            # Respond with a 200 OK for the first 5 POST requests
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write(b"POST request received and processed.")
-        else:
+        # if post_request_count <= 2:
+        #     # Respond with a 200 OK for the first 5 POST requests
+        #     self.send_response(200)
+        #     self.send_header("Content-type", "text/plain")
+        #     self.end_headers()
+        #     self.wfile.write(b"POST request received and processed.")
+        #else:
             # Respond with a 502 Bad Gateway for subsequent POST requests
-            self.send_response(502)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write(b"502 Bad Gateway - Too many POST requests.")
+            # self.send_response(502)
+            # self.send_header("Content-type", "text/plain")
+            # self.end_headers()
+            # self.wfile.write(b"502 Bad Gateway - Too many POST requests.")
+            
 # Create the HTTP server
 with socketserver.TCPServer(("127.0.0.1", PORT), MyHandler) as httpd:
     print(f"Serving at port {PORT}")
