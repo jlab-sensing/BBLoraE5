@@ -33,7 +33,7 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
         global post_request_count
         post_request_count += 1
 
-        if post_request_count <= 2 or post_request_count >= 8:
+        if post_request_count <= 2:
             # Respond with a 200 OK for the first 5 POST requests
             self.send_response(200)
             self.send_header("Content-type", "text/plain")
