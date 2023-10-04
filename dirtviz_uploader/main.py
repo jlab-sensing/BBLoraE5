@@ -238,10 +238,10 @@ def cli():
             print("Writing to csv")
             
 
+        print(buf)
         # Send everything in buffer
         for d in buf:
             # Print everything in buffer
-            print("buf v: ", d)
             if (args.verbose > 0):
                 print(f"Internal Data: {d}")
 
