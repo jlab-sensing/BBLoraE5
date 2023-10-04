@@ -281,11 +281,10 @@ def cli():
 
                 # Send post request
                 r = requests.post(endpoint, json=f)
-                print("json: ", f)
                 print(r.status_code)
 
-                if (args.verbose > 2):
-                    print(r)
+                # if (args.verbose > 2):
+                #     print(r)
 
                 # Check status code
                 if (r.status_code != 200): # if a failure check to see if there is a row_num stored
