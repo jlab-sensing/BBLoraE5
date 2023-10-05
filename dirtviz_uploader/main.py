@@ -139,7 +139,7 @@ def cli():
     row_num = -1 # This is for marking where the server went down and how much data needs to be uploaded once it's back uo
     # -1 when not in use, the total number of surpassed rows when not
     
-    cur_row = 1 # Counts how many rows have been added to the csv, not perfect, but at a second of upload time it will still last 68 years
+    cur_row = 1 # Counts how many rows have been added to the csv, not perfect, but at an upload every second it will still last 68 years
 
 
     #
@@ -159,13 +159,42 @@ def cli():
             
         # Account for a possible error in posting process
         if row_num != -1: # If previous upload failed
-            with open(fullpath) as prev_stored_data: 
-                csv_reader = list(csv.reader(prev_stored_data)) # Open the csv from the stored row number
-                rows = list(csv_reader)
-                for row in rows[row_num:]: # Should iterate from current row marker to the end
-                    buf.append({'type': 'rocketlogger', 'cell': 'test1', 'ts': row[0], 'v': row[1], 'i': row[2]})
-                    
-            print("Previous upload failed")
+            for cell_name in [config["cell1"]["name"], config["cell2"]["name"]]:
+                for data_type in ["rocketlogger", "teros12"]:
+                    # Construct the filename based on cell name and data type
+                    filepath = f"{cell_name}_{data_type}.csv"
+
+                # Append path if backup folder is specified in the config
+                    if "backup_folder" in config:
+                        fullpath = os.path.join(config["backup_folder"], filepath)
+
+                # Check if the file exists
+                    if os.path.isfile(fullpath):
+                        with open(fullpath) as prev_stored_data:
+                            csv_reader = list(csv.reader(prev_stored_data))
+                            rows = list(csv_reader)
+                            for row in rows[row_num:]:
+                        # Create a dictionary to represent the data point
+                                data_point = {
+                                    'type': data_type,
+                                    'cell': cell_name,
+                                    'ts': row[0],
+                                }
+
+                        # Add the appropriate fields based on the data type
+                                if data_type == "rocketlogger":
+                                    data_point['v'] = row[1]
+                                    data_point['i'] = row[2]
+                                elif data_type == "teros12":
+                                    data_point['raw_vwc'] = row[1]
+                                    data_point['vwc'] = row[2]
+                                    data_point['temp'] = row[3]
+                                    data_point['ec'] = row[4]
+
+                                buf.append(data_point)
+
+        print("Previous upload failed")
+
             
 
         # Channel 1
