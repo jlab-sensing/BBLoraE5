@@ -13,6 +13,79 @@ Some Notes
 - The upload interval is implemented by sleeping at the end of the forever loop, therefore the upload interval is not strictly monotonic.
 - The data has the scale applied after measurement and is stored in the standard units V/I, so the uploaded data *may* have rounding errors when measuring very small voltages and currents.
 
+
+Quickstart
+----------
+1. **Setup your SSH config:** copying the following into `~/.ssh/config`. This sets up the connection parameters for SSH to make the commands more straightforward to type. Change `Host` to the hostname of the RocketLogger
+
+```
+Host rocket*-jlab.ucsc.edu
+	User rocketlogger
+	Port 2322
+	PubkeyAcceptedKeyTypes +ssh-rsa
+	IdentityFile ~/.ssh/rocketlogger.default_rsa
+```
+
+The default SSH private key file can be downloaded from their [Github wiki](https://github.com/ETHZ-TEC/RocketLogger/wiki/software-installation#rocketlogger-ssh-configuration). Copy the private key to `~/.ssh/`. Verify you can connect to the RocketLogger with the following command
+
+```
+ssh [rocketlogger hostname]
+```
+
+2. Complete the steps below for installing the firmware.
+3. Ensure the RocketLogger is stopped
+```sh
+systemctl stop uploader
+```
+4. **Modify the configuration file**: The `uploader` config is located at `/etc/uploader.yaml`. Open it with you favorite text editor (vim, nano, emacs, etc).
+
+Change the name of the uploader to the hostname of the device. In *Dirtviz*, this tells you where the data coming from. You can get the hostname by running `hostname`
+```
+name: [hostname]
+```
+
+Change the name of the cells
+```
+# Cell connected to V1/I2
+cell1:
+  # Name of cell
+  name: [name of cell connected to V1/I1]
+  # Associated TEROS12 sensor ID
+  teros: 0
+
+# Cell connected to V2/I2
+cell2:
+  # Name of cell
+  name: [name of cell connected to V2/I2]
+  # Associated TEROS12 sensor ID
+  teros: 0
+```
+
+Change upload interval
+```
+interval: [time between uploads in seconds]
+```
+
+Check HTTP endpoints
+```
+# HTTP request
+http:
+  rl_endpoint: [rocketlogger API url]
+  teros_endpoint: [teros API url] 
+```
+
+5. Enable and start the service
+```
+systemctl enable uploader
+systemctl start uploader
+```
+
+6. **Check `uploader` is running:** From your SSH section you can get the status of the service with the following command. There error message `Error: RocketLogger is not running` is normal. Then, ensure in the *Dirtviz* portal that data is being shown on the plots.  
+```
+systemctl status uploader
+```
+
+
 Installation
 ------------
 
